@@ -126,7 +126,6 @@ load();
 
 }
 
-
 async function load(){
 
 const {data,error}=await c
@@ -135,16 +134,18 @@ const {data,error}=await c
 .order('name');
 
 if(error){
-
-alert(error.message);
-
-return;
-
+    alert("VTC DATABASE ERROR: " + error.message);
+    console.error(error);
+    return;
 }
 
-rows=data||[];
+alert("VTCs found: " + (data ? data.length : 0));
 
+rows=data||[];
 renderList();
+
+}
+asyn
 
 }
 
