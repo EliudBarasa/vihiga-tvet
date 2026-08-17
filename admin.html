@@ -128,15 +128,39 @@ load();
 
 async function load(){
 
-const {data,error}=await c
-.from('vtcs')
-.select('*')
-.order('name');
+    const {data,error}=await c
+        .from('vtcs')
+        .select('*')
+        .order('name');
 
-if(error){
-    alert("VTC DATABASE ERROR: " + error.message);
-    console.error(error);
-    return;
+    if(error){
+        document.getElementById('rows').innerHTML =
+            '<div class="notice"><strong>Database error:</strong><br>' +
+            esc(error.message) +
+            '</div>';
+
+        console.error('VTC LOAD ERROR:', error);
+
+        return;
+    }
+
+    console.log('VTC DATA:', data);
+
+    rows = data || [];
+
+    renderList();
+
+}
+
+
+
+
+
+
+
+    
+    
+    
 }
 
 alert("VTCs found: " + (data ? data.length : 0));
