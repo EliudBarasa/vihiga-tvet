@@ -1,64 +1,74 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Vihiga TVET — digital directory of Vocational Training Centres in Vihiga County, Kenya.">
-<title>Vihiga TVET | 34 VTC Directory</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vihiga TVET | VTC Directory</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 </head>
 <body>
-<header class="site-header">
-  <div class="container nav">
-    <a class="brand" href="index.html"><span class="brand-mark">VT</span><span><strong>Vihiga TVET</strong><small>34 VTC Directory</small></span></a>
-    <nav><a href="#directory">Directory</a><a href="#about">About</a><a href="#contact">Contact</a><a class="admin-link" href="login.html">Admin</a></nav>
-  </div>
-</header>
+<header class="site-header"><div class="container nav">
+<a class="brand" href="index.html"><span class="brand-mark">VT</span><span><strong>Vihiga TVET</strong><small>VTC Directory</small></span></a>
+<nav><a href="#directory">VTCs</a><a href="#course-search">Courses</a><a href="login.html">Admin</a></nav>
+</div></header>
 
-<main>
-<section class="hero">
-  <div class="container hero-grid">
-    <div><span class="eyebrow">VIHIGA COUNTY • KENYA</span><h1>Find a Vocational Training Centre.</h1><p class="hero-copy">A digital doorway to Vihiga's Vocational Training Centres, courses, admissions and opportunities.</p><div class="hero-actions"><a class="btn primary" href="#directory">Explore VTCs</a><a class="btn secondary" href="#contact">Contact Vihiga TVET</a></div></div>
-    <div class="hero-card"><div class="stat"><strong id="vtcTotal">34</strong><span>VTC directory entries</span></div><div class="stat"><strong>5</strong><span>Sub-counties</span></div><div class="stat"><strong>24/7</strong><span>Online access</span></div></div>
-  </div>
-</section>
+<section class="hero"><div class="container">
+<span class="eyebrow">VIHIGA COUNTY • VOCATIONAL TRAINING</span>
+<h1>Find a VTC and the right course for you.</h1>
+<p class="hero-copy">Explore vocational training centres across Vihiga County and discover the courses currently listed for each centre.</p>
+<a class="btn primary" href="#course-search">Search courses</a>
+</div></section>
 
-<section class="section" id="directory">
-<div class="container">
-<div class="section-head"><div><span class="eyebrow">VTC DIRECTORY</span><h2>Browse the centres</h2></div><span class="count" id="resultCount">Loading…</span></div>
-<div class="filters"><input id="search" type="search" placeholder="Search VTC, ward or sub-county…"><select id="subcounty"><option value="">All sub-counties</option><option>Vihiga</option><option>Sabatia</option><option>Hamisi</option><option>Emuhaya</option><option>Luanda</option></select></div>
-<div id="notice" class="notice" hidden></div>
-<div class="cards" id="cards"><div class="loading">Loading VTC directory…</div></div>
+<section class="section" id="course-search"><div class="container">
+<div class="section-head"><div><span class="eyebrow">COURSE DIRECTORY</span><h2>Search for a course</h2></div></div>
+<div class="search-panel">
+<input id="courseQ" class="wide-input" placeholder="e.g. ICT, Plumbing, Electrical…">
+<select id="level"><option value="">All levels</option></select>
+<select id="subcounty"><option value="">All sub-counties</option></select>
+<button id="searchBtn" class="btn primary">Search</button>
 </div>
-</section>
+<div id="courseResults" class="search-results"><div class="loading">Loading courses…</div></div>
+</div></section>
 
-<section class="section alt" id="about"><div class="container narrow"><span class="eyebrow">ABOUT</span><h2>One digital doorway to Vihiga TVET.</h2><p>This platform is designed to connect learners, parents, trainers, employers and institutions with verified VTC information.</p><div class="feature-grid"><div><b>🎓 Courses</b><span>Training pathways at each centre.</span></div><div><b>📍 Locations</b><span>Find centres by ward and sub-county.</span></div><div><b>📞 Contacts</b><span>Verified institutional contacts.</span></div><div><b>📢 Updates</b><span>Admissions, news and opportunities.</span></div></div></div></section>
+<section class="section alt" id="directory"><div class="container">
+<div class="section-head"><div><span class="eyebrow">34 CENTRES</span><h2>VTC Directory</h2></div><input id="vtcQ" class="directory-search" placeholder="Search VTCs…"></div>
+<div id="vtcGrid" class="vtc-grid"><div class="loading">Loading VTCs…</div></div>
+</div></section>
 
-<section class="section" id="contact"><div class="container contact-card"><div><span class="eyebrow">DIRECTORY UPDATES</span><h2>Help keep the information accurate.</h2><p>VTC managers can submit corrections and updates for verification.</p></div><a class="btn primary" href="mailto:info@vihigatvet.com?subject=Vihiga%20TVET%20Directory%20Update">Submit an update</a></div></section>
-</main>
-<footer><div class="container footer-inner"><div><strong>Vihiga TVET</strong><br><span>34 VTC Directory • Vihiga County, Kenya</span></div><div><a href="login.html">Administrator login</a></div></div></footer>
+<footer><div class="container"><strong>Vihiga TVET</strong><span>Digital VTC Directory</span></div></footer>
+
 <script>
-const { createClient } = supabase;
-const client = createClient(window.SUPABASE_URL, window.SUPABASE_PUBLISHABLE_KEY);
-let all = [];
-const cards = document.getElementById('cards'), search = document.getElementById('search'), subcounty = document.getElementById('subcounty'), count = document.getElementById('resultCount'), notice = document.getElementById('notice');
-
-async function load() {
-  const {data, error} = await client.from('vtcs').select('*').eq('is_published', true).order('name');
-  if (error) { notice.hidden=false; notice.textContent='The directory database is not connected yet. Please try again shortly.'; cards.innerHTML='<div class="empty">Unable to load the VTC directory.</div>'; count.textContent='34 centres'; return; }
-  all = data || [];
-  render();
+const {createClient}=supabase;const c=createClient(window.SUPABASE_URL,window.SUPABASE_PUBLISHABLE_KEY);
+let vtcs=[], courses=[];
+async function load(){
+ const [vr,cr]=await Promise.all([
+   c.from('vtcs').select('*').eq('is_published',true).order('name'),
+   c.from('courses').select('id,vtc_id,name,level,duration,is_active').eq('is_active',true).order('name')
+ ]);
+ if(vr.error){vtcGrid.innerHTML='<div class="notice">Unable to load the VTC directory.</div>';return}
+ vtcs=vr.data||[]; courses=cr.data||[];
+ const levels=[...new Set(courses.map(x=>x.level).filter(Boolean))].sort();
+ const subs=[...new Set(vtcs.map(x=>x.sub_county).filter(Boolean))].sort();
+ level.innerHTML='<option value="">All levels</option>'+levels.map(x=>`<option>${esc(x)}</option>`).join('');
+ subcounty.innerHTML='<option value="">All sub-counties</option>'+subs.map(x=>`<option>${esc(x)}</option>`).join('');
+ renderVtcs(); renderCourses();
 }
-function render() {
-  const q=search.value.trim().toLowerCase(), sc=subcounty.value;
-  const rows=all.filter(v => (!q || `${v.name} ${v.sub_county||''} ${v.ward||''}`.toLowerCase().includes(q)) && (!sc || v.sub_county===sc));
-  count.textContent=`${rows.length} centre${rows.length===1?'':'s'}`;
-  cards.innerHTML=rows.map(v=>`<article class="card"><div class="card-top"><span class="number">${String(v.id).slice(0,4)}</span><span class="tag">${v.sub_county||'Vihiga'}</span></div><h3>${escapeHtml(v.name)}</h3><p class="location">📍 ${escapeHtml(v.ward||v.location||'Location to be confirmed')}</p><p class="status">${escapeHtml(v.tveta_status||'To be verified')}</p><a class="details" href="vtc.html?id=${encodeURIComponent(v.id)}">View profile →</a></article>`).join('') || '<div class="empty">No VTC matches your search.</div>';
+function renderVtcs(){
+ const q=vtcQ.value.toLowerCase();
+ const list=vtcs.filter(v=>`${v.name} ${v.sub_county||''} ${v.ward||''}`.toLowerCase().includes(q));
+ vtcGrid.innerHTML=list.map(v=>`<article class="vtc-card"><span class="eyebrow">${esc(v.sub_county||'Vihiga County')}</span><h3>${esc(v.name)}</h3><p>📍 ${esc(v.ward||v.location||'Location to be confirmed')}</p><a class="btn secondary" href="vtc.html?id=${encodeURIComponent(v.id)}">View profile →</a></article>`).join('')||'<div class="empty">No VTCs found.</div>';
 }
-function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-search.addEventListener('input',render); subcounty.addEventListener('change',render); load();
+function renderCourses(){
+ const q=courseQ.value.trim().toLowerCase(), lv=level.value, sc=subcounty.value;
+ const matches=courses.filter(x=>{
+   const v=vtcs.find(v=>v.id===x.vtc_id); if(!v)return false;
+   return (!q||x.name.toLowerCase().includes(q))&&(!lv||x.level===lv)&&(!sc||v.sub_county===sc);
+ });
+ courseResults.innerHTML=matches.map(x=>{const v=vtcs.find(v=>v.id===x.vtc_id);return `<article class="course-result"><div><span class="eyebrow">${esc(x.level||'Level not specified')}</span><h3>${esc(x.name)}</h3><p>🏫 ${esc(v.name)}<br>📍 ${esc(v.ward||v.location||'Location to be confirmed')}</p></div><a class="btn secondary" href="vtc.html?id=${encodeURIComponent(v.id)}">View VTC →</a></article>`}).join('')||'<div class="empty">No matching courses found. Try another search.</div>';
+}
+courseQ.oninput=renderCourses; level.onchange=renderCourses; subcounty.onchange=renderCourses; searchBtn.onclick=renderCourses; vtcQ.oninput=renderVtcs;
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+load();
 </script>
-</body>
-</html>
+</body></html>
