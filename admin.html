@@ -27,8 +27,9 @@ function form(v={}){editor.innerHTML=`<h3>${v.id?'Edit VTC':'Add VTC'}</h3><form
 <label>TVETA status<input id="tveta" value="${attr(v.tveta_status||'To be verified')}"></label><label>Map URL<input id="map" value="${attr(v.map_url||'')}"></label>
 <label>Description<textarea id="desc">${esc(v.description||'')}</textarea></label><label class="check"><input id="pub" type="checkbox" ${v.is_published!==false?'checked':''}> Published</label>
 <div class="form-actions"><button class="btn primary">Save</button>${v.id?'<button type="button" class="btn danger" id="del">Delete</button>':''}</div><div id="saveMsg"></div></form>
-${v.id?`<hr><div class="course-admin"><div class="course-admin-head"><h3>Courses</h3><button type="button" class="btn primary" id="newCourse">+ Add course</button></div><div id="courseRows"><div class="loading">Loading courses…</div></div></div>`:''}`;
-document.getElementById('vtcForm').onsubmit=save;if(v.id){document.getElementById('del').onclick=del;loadCourses(v.id);document.getElementById('newCourse').onclick=()=>courseForm(v.id)}
+${v.id?`<hr><div class="course-admin"><div class="course-admin-head"><h3>Courses</h3><button type="button" class="btn primary" id="newCourse">+ Add course</button></div><div id="courseRows"><div class="loading">Loading courses…</div></div></div>
+<hr><div class="course-admin"><div class="course-admin-head"><h3>Admissions</h3><button type="button" class="btn primary" id="newAdmission">+ Add intake</button></div><div id="admissionRows"><div class="loading">Loading admissions…</div></div></div>`:''}`;
+document.getElementById('vtcForm').onsubmit=save;if(v.id){document.getElementById('del').onclick=del;loadCourses(v.id);document.getElementById('newCourse').onclick=()=>courseForm(v.id);document.getElementById('newAdmission').onclick=()=>admissionForm(v.id);loadAdmissions(v.id)}
 }
 async function save(e){e.preventDefault();const obj={name:name.value,sub_county:sub.value,ward:ward.value,location:loc.value,phone:phone.value,whatsapp:wa.value,email:email.value,principal_name:principal.value,tveta_status:tveta.value,map_url:map.value,description:desc.value,is_published:pub.checked,updated_at:new Date().toISOString()};let res=editing?await c.from('vtcs').update(obj).eq('id',editing.id):await c.from('vtcs').insert(obj);if(res.error){saveMsg.textContent=res.error.message;return}saveMsg.textContent='Saved successfully.';const savedId=editing&&editing.id;await load();if(savedId)edit(savedId);else{editing=null;editor.innerHTML='<h3>Saved</h3><p>Select the new VTC to add courses.</p>'}}
 async function del(){if(!confirm('Delete this VTC and its courses?'))return;const {error}=await c.from('vtcs').delete().eq('id',editing.id);if(error){saveMsg.textContent=error.message;return}editing=null;await load();editor.innerHTML='<h3>Deleted</h3><p>Select another VTC.</p>'}
@@ -36,6 +37,31 @@ async function loadCourses(vtcId){const {data,error}=await c.from('courses').sel
 async function courseForm(vtcId,courseId=null){let x={};if(courseId){const {data}=await c.from('courses').select('*').eq('id',courseId).single();x=data||{}}document.getElementById('courseRows').innerHTML=`<form id="courseForm" class="course-form"><h4>${courseId?'Edit course':'Add course'}</h4><label>Course name<input id="cn" required value="${attr(x.name||'')}"></label><label>Level<input id="cl" placeholder="e.g. Level 4" value="${attr(x.level||'')}"></label><label>Duration<input id="cd" placeholder="e.g. 2 years" value="${attr(x.duration||'')}"></label><label>Description<textarea id="cx">${esc(x.description||'')}</textarea></label><label class="check"><input id="ca" type="checkbox" ${x.is_active!==false?'checked':''}> Active</label><div class="form-actions"><button class="btn primary">Save course</button><button type="button" class="btn secondary" id="cancelCourse">Cancel</button></div><div id="courseMsg"></div></form>`;
 document.getElementById('courseForm').onsubmit=async e=>{e.preventDefault();const obj={vtc_id:vtcId,name:cn.value,level:cl.value,duration:cd.value,description:cx.value,is_active:ca.checked};const r=courseId?await c.from('courses').update(obj).eq('id',courseId):await c.from('courses').insert(obj);if(r.error){courseMsg.textContent=r.error.message;return}await loadCourses(vtcId)};document.getElementById('cancelCourse').onclick=()=>loadCourses(vtcId)}
 async function deleteCourse(id,vtcId){if(!confirm('Delete this course?'))return;const {error}=await c.from('courses').delete().eq('id',id);if(error){alert(error.message);return}loadCourses(vtcId)}
+
+async function loadAdmissions(vtcId){
+ const {data,error}=await c.from('admissions').select('*').eq('vtc_id',vtcId).order('deadline',{ascending:true});
+ const el=document.getElementById('admissionRows'); if(!el)return;
+ if(error){el.innerHTML='<div class="notice">Unable to load admissions: '+esc(error.message)+'</div>';return}
+ el.innerHTML=(data||[]).map(x=>`<div class="course-admin-row"><div><b>${esc(x.intake||'Intake')}</b><span>${esc(x.status||'Closed')} • ${esc(x.deadline||'No deadline')}</span></div><div><button type="button" class="mini" onclick="admissionForm('${x.vtc_id}','${x.id}')">Edit</button><button type="button" class="mini danger-mini" onclick="deleteAdmission('${x.id}','${x.vtc_id}')">Delete</button></div></div>`).join('')||'<p>No admission/intake information added yet.</p>';
+}
+async function admissionForm(vtcId,admissionId=null){
+ let x={status:'Closed'}; if(admissionId){const {data}=await c.from('admissions').select('*').eq('id',admissionId).single();x=data||x}
+ document.getElementById('admissionRows').innerHTML=`<form id="admissionForm" class="course-form"><h4>${admissionId?'Edit intake':'Add intake'}</h4>
+ <label>Status<select id="as"><option ${x.status==='Open'?'selected':''}>Open</option><option ${x.status==='Closed'?'selected':''}>Closed</option></select></label>
+ <label>Intake<input id="ai" placeholder="e.g. September 2026" required value="${attr(x.intake||'')}"></label>
+ <label>Application deadline<input id="ad" type="date" value="${attr(x.deadline||'')}"></label>
+ <label>Application fee<input id="af" placeholder="e.g. KSh 500" value="${attr(x.application_fee||'')}"></label>
+ <label>Tuition/fee information<input id="tf" placeholder="e.g. See course fee schedule" value="${attr(x.tuition_fee||'')}"></label>
+ <label>Entry requirements<textarea id="er">${esc(x.entry_requirements||'')}</textarea></label>
+ <label>Application instructions<textarea id="ix">${esc(x.instructions||'')}</textarea></label>
+ <label>Admissions contact<input id="ac" value="${attr(x.contact||'')}"></label>
+ <label>Application link<input id="al" type="url" placeholder="https://…" value="${attr(x.application_url||'')}"></label>
+ <div class="form-actions"><button class="btn primary">Save intake</button><button type="button" class="btn secondary" id="cancelAdmission">Cancel</button></div><div id="admissionMsg"></div></form>`;
+ document.getElementById('admissionForm').onsubmit=async e=>{e.preventDefault();const obj={vtc_id:vtcId,status:as.value,intake:ai.value,deadline:ad.value||null,application_fee:af.value,tuition_fee:tf.value,entry_requirements:er.value,instructions:ix.value,contact:ac.value,application_url:al.value};const r=admissionId?await c.from('admissions').update(obj).eq('id',admissionId):await c.from('admissions').insert(obj);if(r.error){admissionMsg.textContent=r.error.message;return}loadAdmissions(vtcId)};
+ document.getElementById('cancelAdmission').onclick=()=>loadAdmissions(vtcId)
+}
+async function deleteAdmission(id,vtcId){if(!confirm('Delete this admission record?'))return;const {error}=await c.from('admissions').delete().eq('id',id);if(error){alert(error.message);return}loadAdmissions(vtcId)}
+
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}function attr(s){return esc(s)}
 q.oninput=renderList;add.onclick=()=>{editing=null;form()};logout.onclick=async()=>{await c.auth.signOut();location.href='login.html'};guard();
 </script></body></html>
