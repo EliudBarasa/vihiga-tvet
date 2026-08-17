@@ -1,462 +1,81 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vihiga TVET Admin</title>
-<link rel="stylesheet" href="styles.css">
+
+<title>Vihiga TVET Admin Test</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 </head>
 
 <body>
 
-<header class="site-header">
-<div class="container nav">
+<h2>Vihiga TVET — Database Test</h2>
 
-<a class="brand" href="index.html">
-<span class="brand-mark">VT</span>
-
-<span>
-<strong>Vihiga TVET</strong>
-<small>Admin Dashboard</small>
-</span>
-</a>
-
-<button id="logout" class="btn secondary">
-Sign out
-</button>
-
-</div>
-</header>
-
-
-<main class="section">
-
-<div class="container">
-
-<div class="section-head">
-
-<div>
-<span class="eyebrow">ADMINISTRATION</span>
-<h2>VTC Directory</h2>
-</div>
-
-<button id="add" class="btn primary">
-+ Add VTC
-</button>
-
-</div>
-
-
-<div class="admin-grid">
-
-<section>
-
-<input
-id="q"
-class="wide-input"
-placeholder="Search VTCs…"
->
-
-<div id="rows" class="admin-list"></div>
-
-</section>
-
-
-<aside class="editor" id="editor">
-
-<h3>Select a VTC</h3>
-
-<p>
-Choose a centre to edit, or tap “Add VTC”.
-</p>
-
-</aside>
-
-</div>
-
-</div>
-
-</main>
-
+<div id="result">Testing Supabase...</div>
 
 <script>
 
-const {createClient}=supabase;
+const result = document.getElementById("result");
 
-const c=createClient(
-window.SUPABASE_URL,
-window.SUPABASE_PUBLISHABLE_KEY
-);
+try {
 
-let rows=[],editing=null;
+    const client = supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_PUBLISHABLE_KEY
+    );
 
+    async function test(){
 
-async function guard(){
+        const response = await client
+            .from("vtcs")
+            .select("id,name")
+            .order("name");
 
-const {data:{user}}=await c.auth.getUser();
+        console.log("SUPABASE RESPONSE:", response);
 
-if(!user){
+        if(response.error){
 
-location.href='login.html';
+            result.innerHTML =
+                "<h3>ERROR</h3>" +
+                "<pre>" +
+                response.error.message +
+                "</pre>";
 
-return;
+            return;
+        }
 
-}
+        const data = response.data || [];
 
-const {data:p,error}=await c
-.from('admin_profiles')
-.select('*')
-.eq('id',user.id)
-.eq('is_active',true)
-.single();
+        result.innerHTML =
+            "<h3>SUCCESS — " +
+            data.length +
+            " VTCs found</h3>" +
 
-if(error||!p){
+            "<ol>" +
 
-await c.auth.signOut();
+            data.map(v =>
+                "<li>" + v.name + "</li>"
+            ).join("") +
 
-location.href='login.html';
-
-return;
-
-}
-
-load();
-
-}
-
-async function load(){
-
-    const {data,error}=await c
-        .from('vtcs')
-        .select('*')
-        .order('name');
-
-    if(error){
-        document.getElementById('rows').innerHTML =
-            '<div class="notice"><strong>Database error:</strong><br>' +
-            esc(error.message) +
-            '</div>';
-
-        console.error('VTC LOAD ERROR:', error);
-
-        return;
+            "</ol>";
     }
 
-    console.log('VTC DATA:', data);
+    test();
 
-    rows = data || [];
+} catch(error) {
 
-    renderList();
-
-}
-
-
-
-
-
-
-
-    
-    
-    
-}
-
-alert("VTCs found: " + (data ? data.length : 0));
-
-rows=data||[];
-renderList();
-
-}
-asyn
+    result.innerHTML =
+        "<h3>JAVASCRIPT ERROR</h3>" +
+        "<pre>" +
+        error.message +
+        "</pre>";
 
 }
 
+</script>
 
-function renderList(){
-
-const q=document
-.getElementById('q')
-.value
-.toLowerCase();
-
-document.getElementById('rows').innerHTML=
-
-rows
-.filter(v=>
-`${v.name} ${v.sub_county||''} ${v.ward||''}`
-.toLowerCase()
-.includes(q)
-)
-
-.map(v=>`
-
-<button
-class="admin-row"
-onclick="edit('${v.id}')"
->
-
-<strong>${esc(v.name)}</strong>
-
-<span>
-${esc(v.sub_county||'')}
-•
-${esc(v.ward||'')}
-</span>
-
-</button>
-
-`)
-.join('')
-
-||'<p>No centres found.</p>';
-
-}
-
-
-function edit(id){
-
-editing=rows.find(v=>v.id===id);
-
-form(editing);
-
-}
-
-
-function form(v={}){
-
-editor.innerHTML=`
-
-<h3>
-${v.id?'Edit VTC':'Add VTC'}
-</h3>
-
-<form id="vtcForm">
-
-
-<label>
-Name
-
-<input
-id="name"
-required
-value="${attr(v.name||'')}"
->
-
-</label>
-
-
-<label>
-Sub-county
-
-<input
-id="sub"
-value="${attr(v.sub_county||'')}"
->
-
-</label>
-
-
-<label>
-Ward
-
-<input
-id="ward"
-value="${attr(v.ward||'')}"
->
-
-</label>
-
-
-<label>
-Location
-
-<input
-id="loc"
-value="${attr(v.location||'')}"
->
-
-</label>
-
-
-<label>
-Phone
-
-<input
-id="phone"
-value="${attr(v.phone||'')}"
->
-
-</label>
-
-
-<label>
-WhatsApp
-
-<input
-id="wa"
-value="${attr(v.whatsapp||'')}"
->
-
-</label>
-
-
-<label>
-Email
-
-<input
-id="email"
-value="${attr(v.email||'')}"
->
-
-</label>
-
-
-<label>
-Principal/Manager
-
-<input
-id="principal"
-value="${attr(v.principal_name||'')}"
->
-
-</label>
-
-
-<label>
-TVETA status
-
-<input
-id="tveta"
-value="${attr(v.tveta_status||'To be verified')}"
->
-
-</label>
-
-
-<label>
-Map URL
-
-<input
-id="map"
-value="${attr(v.map_url||'')}"
->
-
-</label>
-
-
-<label>
-Description
-
-<textarea id="desc">
-${esc(v.description||'')}
-</textarea>
-
-</label>
-
-
-<label class="check">
-
-<input
-id="pub"
-type="checkbox"
-${v.is_published!==false?'checked':''}
->
-
-Published
-
-</label>
-
-
-<div class="form-actions">
-
-<button class="btn primary">
-Save
-</button>
-
-${v.id?
-'<button type="button" class="btn danger" id="del">Delete</button>'
-:''}
-
-</div>
-
-<div id="saveMsg"></div>
-
-</form>
-
-
-${v.id?`
-
-<hr>
-
-<div class="course-admin">
-
-<div class="course-admin-head">
-
-<h3>Courses</h3>
-
-<button
-type="button"
-class="btn primary"
-id="newCourse"
->
-+ Add course
-</button>
-
-</div>
-
-
-<div id="courseRows">
-
-<div class="loading">
-Loading courses…
-</div>
-
-</div>
-
-</div>
-
-
-<hr>
-
-<div class="course-admin">
-
-<div class="course-admin-head">
-
-<h3>Admissions</h3>
-
-<button
-type="button"
-class="btn primary"
-id="newAdmission"
->
-+ Add intake
-</button>
-
-</div>
-
-
-<div id="admissionRows">
-
-<div class="loading">
-Loading admissions…
-</div>
-
-</div>
-
-</div>
-
-`:''}
-
-`;
-
-
-document.getElementById('vtcForm').onsubmit=save;
-
-
-if(v.id){
-
-document.getElementById('del').onclick=del;
-
-loadCourses(v.id);
+</body>
+</html>
