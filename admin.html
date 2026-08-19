@@ -345,6 +345,23 @@ function showVTCForm(v = {}){
             </label>
 
 
+            <!-- ================================
+                 ENROLMENT
+            ================================= -->
+
+            <label>
+                Current Enrolment
+                <input
+                    id="enrolment"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 120"
+                    value="${attr(v.enrolment ?? 0)}"
+                >
+            </label>
+
+
             <label>
                 Map URL
                 <input
@@ -372,7 +389,10 @@ function showVTCForm(v = {}){
 
             <div class="form-actions">
 
-                <button class="btn primary">
+                <button
+                    type="submit"
+                    class="btn primary"
+                >
                     Save
                 </button>
 
@@ -509,48 +529,117 @@ async function saveVTC(e){
     e.preventDefault();
 
 
-    const nameEl = document.getElementById("name");
-    const subEl = document.getElementById("sub");
-    const wardEl = document.getElementById("ward");
-    const locEl = document.getElementById("loc");
-    const phoneEl = document.getElementById("phone");
-    const waEl = document.getElementById("wa");
-    const emailEl = document.getElementById("email");
-    const principalEl = document.getElementById("principal");
-    const tvetaEl = document.getElementById("tveta");
-    const mapEl = document.getElementById("map");
-    const descEl = document.getElementById("desc");
-    const pubEl = document.getElementById("pub");
-    const msgEl = document.getElementById("saveMsg");
+    const nameEl =
+        document.getElementById("name");
+
+    const subEl =
+        document.getElementById("sub");
+
+    const wardEl =
+        document.getElementById("ward");
+
+    const locEl =
+        document.getElementById("loc");
+
+    const phoneEl =
+        document.getElementById("phone");
+
+    const waEl =
+        document.getElementById("wa");
+
+    const emailEl =
+        document.getElementById("email");
+
+    const principalEl =
+        document.getElementById("principal");
+
+    const tvetaEl =
+        document.getElementById("tveta");
+
+    const enrolmentEl =
+        document.getElementById("enrolment");
+
+    const mapEl =
+        document.getElementById("map");
+
+    const descEl =
+        document.getElementById("desc");
+
+    const pubEl =
+        document.getElementById("pub");
+
+    const msgEl =
+        document.getElementById("saveMsg");
+
+
+    /* ================================
+       VALIDATE ENROLMENT
+    ================================= */
+
+    const enrolmentValue =
+        Number(enrolmentEl.value);
+
+
+    if(
+        enrolmentEl.value !== "" &&
+        (
+            !Number.isInteger(enrolmentValue) ||
+            enrolmentValue < 0
+        )
+    ){
+
+        msgEl.textContent =
+            "Enrolment must be a whole number of 0 or more.";
+
+        return;
+    }
 
 
     const obj = {
 
-        name: nameEl.value.trim(),
+        name:
+            nameEl.value.trim(),
 
-        sub_county: subEl.value.trim(),
+        sub_county:
+            subEl.value.trim(),
 
-        ward: wardEl.value.trim(),
+        ward:
+            wardEl.value.trim(),
 
-        location: locEl.value.trim(),
+        location:
+            locEl.value.trim(),
 
-        phone: phoneEl.value.trim(),
+        phone:
+            phoneEl.value.trim(),
 
-        whatsapp: waEl.value.trim(),
+        whatsapp:
+            waEl.value.trim(),
 
-        email: emailEl.value.trim(),
+        email:
+            emailEl.value.trim(),
 
-        principal_name: principalEl.value.trim(),
+        principal_name:
+            principalEl.value.trim(),
 
-        tveta_status: tvetaEl.value.trim(),
+        tveta_status:
+            tvetaEl.value.trim(),
 
-        map_url: mapEl.value.trim(),
+        enrolment:
+            enrolmentEl.value === ""
+            ? 0
+            : enrolmentValue,
 
-        description: descEl.value.trim(),
+        map_url:
+            mapEl.value.trim(),
 
-        is_published: pubEl.checked,
+        description:
+            descEl.value.trim(),
 
-        updated_at: new Date().toISOString()
+        is_published:
+            pubEl.checked,
+
+        updated_at:
+            new Date().toISOString()
 
     };
 
@@ -576,14 +665,26 @@ async function saveVTC(e){
 
     if(result.error){
 
-        msgEl.textContent = result.error.message;
+        msgEl.textContent =
+            result.error.message;
+
+        console.error(
+            "VTC SAVE ERROR:",
+            result.error
+        );
 
         return;
     }
 
 
+    msgEl.textContent =
+        "Saved successfully.";
+
+
     const savedId =
-        editing ? editing.id : null;
+        editing
+        ? editing.id
+        : null;
 
 
     await load();
@@ -633,7 +734,8 @@ async function deleteVTC(){
 
         document.getElementById(
             "saveMsg"
-        ).textContent = error.message;
+        ).textContent =
+            error.message;
 
         return;
     }
@@ -852,7 +954,10 @@ async function courseForm(
 
             <div class="form-actions">
 
-                <button class="btn primary">
+                <button
+                    type="submit"
+                    class="btn primary"
+                >
                     Save course
                 </button>
 
@@ -1351,6 +1456,7 @@ async function admissionForm(
             <div class="form-actions">
 
                 <button
+                    type="submit"
                     class="btn primary"
                 >
                     Save intake
@@ -1384,12 +1490,6 @@ async function admissionForm(
 
 
                 const obj = {
-
-                    /*
-                     * IMPORTANT:
-                     * title is required because
-                     * admissions.title is NOT NULL.
-                     */
 
                     title:
                         document
