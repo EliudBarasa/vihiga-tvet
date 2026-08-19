@@ -1,74 +1,986 @@
-<!doctype html>
+   <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta charset="utf-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+
 <title>Vihiga TVET | VTC Directory</title>
-<link rel="stylesheet" href="styles.css">
+
+<link
+    rel="stylesheet"
+    href="styles.css"
+>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="config.js"></script>
+
 </head>
+
+
 <body>
-<header class="site-header"><div class="container nav">
-<a class="brand" href="index.html"><span class="brand-mark">VT</span><span><strong>Vihiga TVET</strong><small>VTC Directory</small></span></a>
-<nav><a href="#directory">VTCs</a><a href="#course-search">Courses</a><a href="login.html">Admin</a></nav>
-</div></header>
 
-<section class="hero"><div class="container">
-<span class="eyebrow">VIHIGA COUNTY • VOCATIONAL TRAINING</span>
-<h1>Find a VTC and the right course for you.</h1>
-<p class="hero-copy">Explore vocational training centres across Vihiga County and discover the courses currently listed for each centre.</p>
-<a class="btn primary" href="#course-search">Search courses</a>
-</div></section>
 
-<section class="section" id="course-search"><div class="container">
-<div class="section-head"><div><span class="eyebrow">COURSE DIRECTORY</span><h2>Search for a course</h2></div></div>
-<div class="search-panel">
-<input id="courseQ" class="wide-input" placeholder="e.g. ICT, Plumbing, Electrical…">
-<select id="level"><option value="">All levels</option></select>
-<select id="subcounty"><option value="">All sub-counties</option></select>
-<button id="searchBtn" class="btn primary">Search</button>
+<header class="site-header">
+
+<div class="container nav">
+
+<a
+    class="brand"
+    href="index.html"
+>
+
+<span class="brand-mark">
+VT
+</span>
+
+<span>
+
+<strong>
+Vihiga TVET
+</strong>
+
+<small>
+VTC Directory
+</small>
+
+</span>
+
+</a>
+
+
+<nav>
+
+<a href="#directory">
+VTCs
+</a>
+
+<a href="#course-search">
+Courses
+</a>
+
+<a href="login.html">
+Admin
+</a>
+
+</nav>
+
 </div>
-<div id="courseResults" class="search-results"><div class="loading">Loading courses…</div></div>
-</div></section>
 
-<section class="section alt" id="directory"><div class="container">
-<div class="section-head"><div><span class="eyebrow">34 CENTRES</span><h2>VTC Directory</h2></div><input id="vtcQ" class="directory-search" placeholder="Search VTCs…"></div>
-<div id="vtcGrid" class="vtc-grid"><div class="loading">Loading VTCs…</div></div>
-</div></section>
+</header>
 
-<footer><div class="container"><strong>Vihiga TVET</strong><span>Digital VTC Directory</span></div></footer>
+
+
+<!-- ================================
+     HERO
+================================ -->
+
+<section class="hero">
+
+<div class="container">
+
+<span class="eyebrow">
+VIHIGA COUNTY • VOCATIONAL TRAINING
+</span>
+
+
+<h1>
+Find a VTC and the right course for you.
+</h1>
+
+
+<p class="hero-copy">
+
+Explore vocational training centres across
+Vihiga County and discover the courses
+currently listed for each centre.
+
+</p>
+
+
+<a
+    class="btn primary"
+    href="#course-search"
+>
+Search courses
+</a>
+
+</div>
+
+</section>
+
+
+
+<!-- ================================
+     TVET STATISTICS
+================================ -->
+
+<section class="section">
+
+<div class="container">
+
+<div class="section-head">
+
+<div>
+
+<span class="eyebrow">
+VIHIGA TVET DATA
+</span>
+
+<h2>
+TVET at a Glance
+</h2>
+
+</div>
+
+</div>
+
+
+<div class="profile-grid">
+
+
+<div>
+
+<b>
+VTCs
+</b>
+
+<span id="statVtcs">
+0
+</span>
+
+</div>
+
+
+<div>
+
+<b>
+Total Enrolment
+</b>
+
+<span id="statEnrolment">
+0
+</span>
+
+</div>
+
+
+<div>
+
+<b>
+Active Courses
+</b>
+
+<span id="statCourses">
+0
+</span>
+
+</div>
+
+
+<div>
+
+<b>
+VTCs with Enrolment Data
+</b>
+
+<span id="statReporting">
+0
+</span>
+
+</div>
+
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- ================================
+     COURSE SEARCH
+================================ -->
+
+<section
+    class="section"
+    id="course-search"
+>
+
+<div class="container">
+
+
+<div class="section-head">
+
+<div>
+
+<span class="eyebrow">
+COURSE DIRECTORY
+</span>
+
+<h2>
+Search for a course
+</h2>
+
+</div>
+
+</div>
+
+
+<div class="search-panel">
+
+
+<input
+    id="courseQ"
+    class="wide-input"
+    placeholder="e.g. ICT, Plumbing, Electrical…"
+>
+
+
+<select id="level">
+
+<option value="">
+All levels
+</option>
+
+</select>
+
+
+<select id="subcounty">
+
+<option value="">
+All sub-counties
+</option>
+
+</select>
+
+
+<button
+    id="searchBtn"
+    class="btn primary"
+>
+
+Search
+
+</button>
+
+
+</div>
+
+
+<div
+    id="courseResults"
+    class="search-results"
+>
+
+<div class="loading">
+Loading courses…
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<!-- ================================
+     VTC DIRECTORY
+================================ -->
+
+<section
+    class="section alt"
+    id="directory"
+>
+
+<div class="container">
+
+
+<div class="section-head">
+
+
+<div>
+
+<span class="eyebrow">
+34 CENTRES
+</span>
+
+<h2>
+VTC Directory
+</h2>
+
+</div>
+
+
+<input
+    id="vtcQ"
+    class="directory-search"
+    placeholder="Search VTCs…"
+>
+
+
+</div>
+
+
+<div
+    id="vtcGrid"
+    class="vtc-grid"
+>
+
+<div class="loading">
+Loading VTCs…
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+
+<footer>
+
+<div class="container">
+
+<strong>
+Vihiga TVET
+</strong>
+
+<span>
+Digital VTC Directory
+</span>
+
+</div>
+
+</footer>
+
+
 
 <script>
-const {createClient}=supabase;const c=createClient(window.SUPABASE_URL,window.SUPABASE_PUBLISHABLE_KEY);
-let vtcs=[], courses=[];
+
+
+/* ================================
+   SUPABASE
+================================ */
+
+const {createClient} = supabase;
+
+
+const c = createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_PUBLISHABLE_KEY
+);
+
+
+
+/* ================================
+   DATA
+================================ */
+
+let vtcs = [];
+
+let courses = [];
+
+
+
+/* ================================
+   LOAD DATA
+================================ */
+
 async function load(){
- const [vr,cr]=await Promise.all([
-   c.from('vtcs').select('*').eq('is_published',true).order('name'),
-   c.from('courses').select('id,vtc_id,name,level,duration,is_active').eq('is_active',true).order('name')
- ]);
- if(vr.error){vtcGrid.innerHTML='<div class="notice">Unable to load the VTC directory.</div>';return}
- vtcs=vr.data||[]; courses=cr.data||[];
- const levels=[...new Set(courses.map(x=>x.level).filter(Boolean))].sort();
- const subs=[...new Set(vtcs.map(x=>x.sub_county).filter(Boolean))].sort();
- level.innerHTML='<option value="">All levels</option>'+levels.map(x=>`<option>${esc(x)}</option>`).join('');
- subcounty.innerHTML='<option value="">All sub-counties</option>'+subs.map(x=>`<option>${esc(x)}</option>`).join('');
- renderVtcs(); renderCourses();
+
+    const [
+
+        vr,
+
+        cr
+
+    ] = await Promise.all([
+
+
+        c
+            .from('vtcs')
+            .select('*')
+            .eq(
+                'is_published',
+                true
+            )
+            .order('name'),
+
+
+        c
+            .from('courses')
+            .select(
+                'id,vtc_id,name,level,duration,is_active'
+            )
+            .eq(
+                'is_active',
+                true
+            )
+            .order('name')
+
+    ]);
+
+
+    /* ================================
+       VTC ERROR
+    ================================= */
+
+    if(vr.error){
+
+        vtcGrid.innerHTML =
+            '<div class="notice">' +
+            'Unable to load the VTC directory.' +
+            '</div>';
+
+        console.error(
+            'VTC LOAD ERROR:',
+            vr.error
+        );
+
+        return;
+    }
+
+
+    /* ================================
+       STORE DATA
+    ================================= */
+
+    vtcs =
+        vr.data || [];
+
+
+    courses =
+        cr.data || [];
+
+
+
+    /* ================================
+       STATISTICS
+    ================================= */
+
+    updateStatistics();
+
+
+
+    /* ================================
+       FILTER OPTIONS
+    ================================= */
+
+    const levels = [
+
+        ...new Set(
+
+            courses
+                .map(x => x.level)
+                .filter(Boolean)
+
+        )
+
+    ].sort();
+
+
+    const subs = [
+
+        ...new Set(
+
+            vtcs
+                .map(x => x.sub_county)
+                .filter(Boolean)
+
+        )
+
+    ].sort();
+
+
+    level.innerHTML =
+        '<option value="">All levels</option>' +
+
+        levels
+            .map(
+                x =>
+                `<option value="${escAttr(x)}">
+                    ${esc(x)}
+                </option>`
+            )
+            .join('');
+
+
+    subcounty.innerHTML =
+        '<option value="">All sub-counties</option>' +
+
+        subs
+            .map(
+                x =>
+                `<option value="${escAttr(x)}">
+                    ${esc(x)}
+                </option>`
+            )
+            .join('');
+
+
+    /* ================================
+       RENDER
+    ================================= */
+
+    renderVtcs();
+
+    renderCourses();
+
 }
+
+
+
+/* ================================
+   STATISTICS
+================================ */
+
+function updateStatistics(){
+
+    /* Total VTCs */
+
+    const totalVtcs =
+        vtcs.length;
+
+
+    /* Total enrolment */
+
+    const totalEnrolment =
+        vtcs.reduce(
+
+            (total,v) => {
+
+                const value =
+                    Number(v.enrolment);
+
+
+                return total +
+                    (
+                        Number.isFinite(value)
+                        && value > 0
+                        ? value
+                        : 0
+                    );
+
+            },
+
+            0
+
+        );
+
+
+    /* VTCs reporting enrolment */
+
+    const reportingVtcs =
+        vtcs.filter(
+
+            v => {
+
+                const value =
+                    Number(v.enrolment);
+
+
+                return Number.isFinite(value)
+                    && value > 0;
+
+            }
+
+        ).length;
+
+
+    /* Active courses */
+
+    const totalCourses =
+        courses.length;
+
+
+    /* Display */
+
+    document
+        .getElementById(
+            'statVtcs'
+        )
+        .textContent =
+        totalVtcs.toLocaleString();
+
+
+    document
+        .getElementById(
+            'statEnrolment'
+        )
+        .textContent =
+        totalEnrolment.toLocaleString();
+
+
+    document
+        .getElementById(
+            'statCourses'
+        )
+        .textContent =
+        totalCourses.toLocaleString();
+
+
+    document
+        .getElementById(
+            'statReporting'
+        )
+        .textContent =
+        reportingVtcs.toLocaleString();
+
+}
+
+
+
+/* ================================
+   VTC DIRECTORY
+================================ */
+
 function renderVtcs(){
- const q=vtcQ.value.toLowerCase();
- const list=vtcs.filter(v=>`${v.name} ${v.sub_county||''} ${v.ward||''}`.toLowerCase().includes(q));
- vtcGrid.innerHTML=list.map(v=>`<article class="vtc-card"><span class="eyebrow">${esc(v.sub_county||'Vihiga County')}</span><h3>${esc(v.name)}</h3><p>📍 ${esc(v.ward||v.location||'Location to be confirmed')}</p><a class="btn secondary" href="vtc.html?id=${encodeURIComponent(v.id)}">View profile →</a></article>`).join('')||'<div class="empty">No VTCs found.</div>';
+
+    const q =
+        vtcQ.value
+            .trim()
+            .toLowerCase();
+
+
+    const list =
+        vtcs.filter(
+
+            v =>
+                `${v.name}
+                ${v.sub_county || ''}
+                ${v.ward || ''}`
+                .toLowerCase()
+                .includes(q)
+
+        );
+
+
+    vtcGrid.innerHTML =
+
+        list
+
+            .map(
+
+                v => `
+
+                <article
+                    class="vtc-card"
+                >
+
+                    <span class="eyebrow">
+
+                        ${esc(
+                            v.sub_county ||
+                            'Vihiga County'
+                        )}
+
+                    </span>
+
+
+                    <h3>
+
+                        ${esc(v.name)}
+
+                    </h3>
+
+
+                    <p>
+
+                        📍
+
+                        ${esc(
+                            v.ward ||
+                            v.location ||
+                            'Location to be confirmed'
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        👥
+
+                        <strong>
+
+                            ${Number(
+                                v.enrolment || 0
+                            ).toLocaleString()}
+
+                        </strong>
+
+                        trainees
+
+                    </p>
+
+
+                    <a
+                        class="btn secondary"
+                        href="vtc.html?id=${encodeURIComponent(v.id)}"
+                    >
+
+                        View profile →
+
+                    </a>
+
+
+                </article>
+
+                `
+
+            )
+
+            .join('')
+
+            ||
+
+            '<div class="empty">No VTCs found.</div>';
+
 }
+
+
+
+/* ================================
+   COURSE SEARCH
+================================ */
+
 function renderCourses(){
- const q=courseQ.value.trim().toLowerCase(), lv=level.value, sc=subcounty.value;
- const matches=courses.filter(x=>{
-   const v=vtcs.find(v=>v.id===x.vtc_id); if(!v)return false;
-   return (!q||x.name.toLowerCase().includes(q))&&(!lv||x.level===lv)&&(!sc||v.sub_county===sc);
- });
- courseResults.innerHTML=matches.map(x=>{const v=vtcs.find(v=>v.id===x.vtc_id);return `<article class="course-result"><div><span class="eyebrow">${esc(x.level||'Level not specified')}</span><h3>${esc(x.name)}</h3><p>🏫 ${esc(v.name)}<br>📍 ${esc(v.ward||v.location||'Location to be confirmed')}</p></div><a class="btn secondary" href="vtc.html?id=${encodeURIComponent(v.id)}">View VTC →</a></article>`}).join('')||'<div class="empty">No matching courses found. Try another search.</div>';
+
+    const q =
+        courseQ.value
+            .trim()
+            .toLowerCase();
+
+
+    const lv =
+        level.value;
+
+
+    const sc =
+        subcounty.value;
+
+
+    const matches =
+
+        courses.filter(
+
+            x => {
+
+                const v =
+                    vtcs.find(
+                        v => v.id === x.vtc_id
+                    );
+
+
+                if(!v){
+                    return false;
+                }
+
+
+                return (
+
+                    (
+                        !q ||
+                        x.name
+                            .toLowerCase()
+                            .includes(q)
+                    )
+
+                    &&
+
+                    (
+                        !lv ||
+                        x.level === lv
+                    )
+
+                    &&
+
+                    (
+                        !sc ||
+                        v.sub_county === sc
+                    )
+
+                );
+
+            }
+
+        );
+
+
+    courseResults.innerHTML =
+
+        matches
+
+            .map(
+
+                x => {
+
+                    const v =
+                        vtcs.find(
+                            v => v.id === x.vtc_id
+                        );
+
+
+                    return `
+
+                    <article
+                        class="course-result"
+                    >
+
+                        <div>
+
+
+                            <span
+                                class="eyebrow"
+                            >
+
+                                ${esc(
+                                    x.level ||
+                                    'Level not specified'
+                                )}
+
+                            </span>
+
+
+                            <h3>
+
+                                ${esc(x.name)}
+
+                            </h3>
+
+
+                            <p>
+
+                                🏫
+
+                                ${esc(v.name)}
+
+                                <br>
+
+                                📍
+
+                                ${esc(
+                                    v.ward ||
+                                    v.location ||
+                                    'Location to be confirmed'
+                                )}
+
+                            </p>
+
+
+                        </div>
+
+
+                        <a
+                            class="btn secondary"
+                            href="vtc.html?id=${encodeURIComponent(v.id)}"
+                        >
+
+                            View VTC →
+
+                        </a>
+
+
+                    </article>
+
+                    `;
+
+                }
+
+            )
+
+            .join('')
+
+            ||
+
+            '<div class="empty">' +
+            'No matching courses found. ' +
+            'Try another search.' +
+            '</div>';
+
 }
-courseQ.oninput=renderCourses; level.onchange=renderCourses; subcounty.onchange=renderCourses; searchBtn.onclick=renderCourses; vtcQ.oninput=renderVtcs;
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+
+
+
+/* ================================
+   EVENTS
+================================ */
+
+courseQ.oninput =
+    renderCourses;
+
+
+level.onchange =
+    renderCourses;
+
+
+subcounty.onchange =
+    renderCourses;
+
+
+searchBtn.onclick =
+    renderCourses;
+
+
+vtcQ.oninput =
+    renderVtcs;
+
+
+
+/* ================================
+   ESCAPE HTML
+================================ */
+
+function esc(s){
+
+    return String(s ?? '')
+        .replace(
+            /[&<>"']/g,
+
+            c => ({
+
+                '&':'&amp;',
+                '<':'&lt;',
+                '>':'&gt;',
+                '"':'&quot;',
+                "'":'&#039;'
+
+            }[c])
+
+        );
+
+}
+
+
+function escAttr(s){
+
+    return esc(s);
+
+}
+
+
+
+/* ================================
+   START
+================================ */
+
 load();
+
 </script>
-</body></html>
+
+
+</body>
+
+</html>
