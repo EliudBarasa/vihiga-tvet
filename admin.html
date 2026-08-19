@@ -1,10 +1,12 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Vihiga TVET Admin Test</title>
+<title>Vihiga TVET Admin</title>
+
+<link rel="stylesheet" href="styles.css">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
@@ -12,68 +14,1618 @@
 
 <body>
 
-<h2>Vihiga TVET — Database Test</h2>
+<header class="site-header">
+<div class="container nav">
 
-<div id="result">Testing Supabase...</div>
+<a class="brand" href="index.html">
+<span class="brand-mark">VT</span>
+<span>
+<strong>Vihiga TVET</strong>
+<small>Admin Dashboard</small>
+</span>
+</a>
+
+<button id="logout" class="btn secondary">
+Sign out
+</button>
+
+</div>
+</header>
+
+
+<main class="section">
+
+<div class="container">
+
+<div class="section-head">
+
+<div>
+<span class="eyebrow">ADMINISTRATION</span>
+<h2>VTC Directory</h2>
+</div>
+
+<button id="add" class="btn primary">
++ Add VTC
+</button>
+
+</div>
+
+
+<div class="admin-grid">
+
+<section>
+
+<input
+id="q"
+class="wide-input"
+placeholder="Search VTCs…"
+>
+
+<div id="rows" class="admin-list"></div>
+
+</section>
+
+
+<aside class="editor" id="editor">
+
+<h3>Select a VTC</h3>
+
+<p>
+Choose a centre to edit, or tap “Add VTC”.
+</p>
+
+</aside>
+
+</div>
+
+</div>
+
+</main>
+
 
 <script>
 
-const result = document.getElementById("result");
+const client = supabase.createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_PUBLISHABLE_KEY
+);
 
-try {
+let rows = [];
+let editing = null;
 
-    const client = supabase.createClient(
-        window.SUPABASE_URL,
-        window.SUPABASE_PUBLISHABLE_KEY
-    );
 
-    async function test(){
+/* ================================
+   ELEMENT REFERENCES
+================================ */
 
-        const response = await client
-            .from("vtcs")
-            .select("id,name")
-            .order("name");
+const qEl = document.getElementById("q");
+const rowsEl = document.getElementById("rows");
+const editorEl = document.getElementById("editor");
+const addEl = document.getElementById("add");
+const logoutEl = document.getElementById("logout");
 
-        console.log("SUPABASE RESPONSE:", response);
 
-        if(response.error){
+/* ================================
+   ADMIN GUARD
+================================ */
 
-            result.innerHTML =
-                "<h3>ERROR</h3>" +
-                "<pre>" +
-                response.error.message +
-                "</pre>";
+async function guard(){
 
-            return;
-        }
+    const {
+        data: { user },
+        error: userError
+    } = await client.auth.getUser();
 
-        const data = response.data || [];
+    if(userError || !user){
 
-        result.innerHTML =
-            "<h3>SUCCESS — " +
-            data.length +
-            " VTCs found</h3>" +
+        window.location.href = "login.html";
 
-            "<ol>" +
-
-            data.map(v =>
-                "<li>" + v.name + "</li>"
-            ).join("") +
-
-            "</ol>";
+        return;
     }
 
-    test();
 
-} catch(error) {
+    const {
+        data: profile,
+        error: profileError
+    } = await client
+        .from("admin_profiles")
+        .select("*")
+        .eq("id", user.id)
+        .eq("is_active", true)
+        .single();
 
-    result.innerHTML =
-        "<h3>JAVASCRIPT ERROR</h3>" +
-        "<pre>" +
-        error.message +
-        "</pre>";
 
+    if(profileError || !profile){
+
+        await client.auth.signOut();
+
+        window.location.href = "login.html";
+
+        return;
+    }
+
+
+    await load();
 }
+
+
+/* ================================
+   LOAD VTCs
+================================ */
+
+async function load(){
+
+    const {
+        data,
+        error
+    } = await client
+        .from("vtcs")
+        .select("*")
+        .order("name");
+
+
+    if(error){
+
+        rowsEl.innerHTML =
+            "<div class='notice'>" +
+            "<strong>Unable to load VTCs:</strong><br>" +
+            esc(error.message) +
+            "</div>";
+
+        console.error("VTC LOAD ERROR:", error);
+
+        return;
+    }
+
+
+    rows = data || [];
+
+    renderList();
+}
+
+
+/* ================================
+   DISPLAY VTC LIST
+================================ */
+
+function renderList(){
+
+    const search =
+        qEl.value
+        .trim()
+        .toLowerCase();
+
+
+    const filtered = rows.filter(v => {
+
+        const text =
+            `${v.name || ""} ${v.sub_county || ""} ${v.ward || ""}`
+            .toLowerCase();
+
+        return text.includes(search);
+    });
+
+
+    rowsEl.innerHTML =
+        filtered.map(v => `
+
+            <button
+                type="button"
+                class="admin-row"
+                onclick="editVTC('${v.id}')"
+            >
+
+                <strong>
+                    ${esc(v.name)}
+                </strong>
+
+                <span>
+                    ${esc(v.sub_county || "")}
+                    •
+                    ${esc(v.ward || "")}
+                </span>
+
+            </button>
+
+        `).join("")
+        ||
+        "<p>No centres found.</p>";
+}
+
+
+/* ================================
+   EDIT VTC
+================================ */
+
+function editVTC(id){
+
+    editing = rows.find(v => v.id === id);
+
+    if(!editing){
+        return;
+    }
+
+    showVTCForm(editing);
+}
+
+
+/* ================================
+   VTC FORM
+================================ */
+
+function showVTCForm(v = {}){
+
+    editorEl.innerHTML = `
+
+        <h3>
+            ${v.id ? "Edit VTC" : "Add VTC"}
+        </h3>
+
+        <form id="vtcForm">
+
+            <label>
+                Name
+                <input
+                    id="name"
+                    required
+                    value="${attr(v.name || "")}"
+                >
+            </label>
+
+
+            <label>
+                Sub-county
+                <input
+                    id="sub"
+                    value="${attr(v.sub_county || "")}"
+                >
+            </label>
+
+
+            <label>
+                Ward
+                <input
+                    id="ward"
+                    value="${attr(v.ward || "")}"
+                >
+            </label>
+
+
+            <label>
+                Location
+                <input
+                    id="loc"
+                    value="${attr(v.location || "")}"
+                >
+            </label>
+
+
+            <label>
+                Phone
+                <input
+                    id="phone"
+                    value="${attr(v.phone || "")}"
+                >
+            </label>
+
+
+            <label>
+                WhatsApp
+                <input
+                    id="wa"
+                    value="${attr(v.whatsapp || "")}"
+                >
+            </label>
+
+
+            <label>
+                Email
+                <input
+                    id="email"
+                    value="${attr(v.email || "")}"
+                >
+            </label>
+
+
+            <label>
+                Principal/Manager
+                <input
+                    id="principal"
+                    value="${attr(v.principal_name || "")}"
+                >
+            </label>
+
+
+            <label>
+                TVETA status
+                <input
+                    id="tveta"
+                    value="${attr(v.tveta_status || "To be verified")}"
+                >
+            </label>
+
+
+            <label>
+                Map URL
+                <input
+                    id="map"
+                    value="${attr(v.map_url || "")}"
+                >
+            </label>
+
+
+            <label>
+                Description
+                <textarea id="desc">${esc(v.description || "")}</textarea>
+            </label>
+
+
+            <label class="check">
+                <input
+                    id="pub"
+                    type="checkbox"
+                    ${v.is_published !== false ? "checked" : ""}
+                >
+                Published
+            </label>
+
+
+            <div class="form-actions">
+
+                <button class="btn primary">
+                    Save
+                </button>
+
+                ${
+                    v.id
+                    ?
+                    `<button
+                        type="button"
+                        class="btn danger"
+                        id="del"
+                    >
+                        Delete
+                    </button>`
+                    :
+                    ""
+                }
+
+            </div>
+
+
+            <div id="saveMsg"></div>
+
+        </form>
+
+
+        ${
+            v.id
+            ?
+            `
+
+            <hr>
+
+            <div class="course-admin">
+
+                <div class="course-admin-head">
+
+                    <h3>Courses</h3>
+
+                    <button
+                        type="button"
+                        class="btn primary"
+                        id="newCourse"
+                    >
+                        + Add course
+                    </button>
+
+                </div>
+
+                <div id="courseRows">
+                    <div class="loading">
+                        Loading courses…
+                    </div>
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <div class="course-admin">
+
+                <div class="course-admin-head">
+
+                    <h3>Admissions</h3>
+
+                    <button
+                        type="button"
+                        class="btn primary"
+                        id="newAdmission"
+                    >
+                        + Add intake
+                    </button>
+
+                </div>
+
+                <div id="admissionRows">
+                    <div class="loading">
+                        Loading admissions…
+                    </div>
+                </div>
+
+            </div>
+
+            `
+            :
+            ""
+        }
+
+    `;
+
+
+    document
+        .getElementById("vtcForm")
+        .addEventListener("submit", saveVTC);
+
+
+    if(v.id){
+
+        document
+            .getElementById("del")
+            .addEventListener("click", deleteVTC);
+
+
+        document
+            .getElementById("newCourse")
+            .addEventListener(
+                "click",
+                () => courseForm(v.id)
+            );
+
+
+        document
+            .getElementById("newAdmission")
+            .addEventListener(
+                "click",
+                () => admissionForm(v.id)
+            );
+
+
+        loadCourses(v.id);
+
+        loadAdmissions(v.id);
+    }
+}
+
+
+/* ================================
+   SAVE VTC
+================================ */
+
+async function saveVTC(e){
+
+    e.preventDefault();
+
+
+    const nameEl = document.getElementById("name");
+    const subEl = document.getElementById("sub");
+    const wardEl = document.getElementById("ward");
+    const locEl = document.getElementById("loc");
+    const phoneEl = document.getElementById("phone");
+    const waEl = document.getElementById("wa");
+    const emailEl = document.getElementById("email");
+    const principalEl = document.getElementById("principal");
+    const tvetaEl = document.getElementById("tveta");
+    const mapEl = document.getElementById("map");
+    const descEl = document.getElementById("desc");
+    const pubEl = document.getElementById("pub");
+    const msgEl = document.getElementById("saveMsg");
+
+
+    const obj = {
+
+        name: nameEl.value.trim(),
+
+        sub_county: subEl.value.trim(),
+
+        ward: wardEl.value.trim(),
+
+        location: locEl.value.trim(),
+
+        phone: phoneEl.value.trim(),
+
+        whatsapp: waEl.value.trim(),
+
+        email: emailEl.value.trim(),
+
+        principal_name: principalEl.value.trim(),
+
+        tveta_status: tvetaEl.value.trim(),
+
+        map_url: mapEl.value.trim(),
+
+        description: descEl.value.trim(),
+
+        is_published: pubEl.checked,
+
+        updated_at: new Date().toISOString()
+
+    };
+
+
+    let result;
+
+
+    if(editing){
+
+        result = await client
+            .from("vtcs")
+            .update(obj)
+            .eq("id", editing.id);
+
+    }else{
+
+        result = await client
+            .from("vtcs")
+            .insert(obj);
+
+    }
+
+
+    if(result.error){
+
+        msgEl.textContent = result.error.message;
+
+        return;
+    }
+
+
+    const savedId =
+        editing ? editing.id : null;
+
+
+    await load();
+
+
+    if(savedId){
+
+        editVTC(savedId);
+
+    }else{
+
+        editing = null;
+
+        editorEl.innerHTML = `
+            <h3>Saved</h3>
+            <p>Select the new VTC to add courses.</p>
+        `;
+    }
+}
+
+
+/* ================================
+   DELETE VTC
+================================ */
+
+async function deleteVTC(){
+
+    if(!editing){
+        return;
+    }
+
+
+    if(!confirm(
+        "Delete this VTC and its courses?"
+    )){
+        return;
+    }
+
+
+    const { error } = await client
+        .from("vtcs")
+        .delete()
+        .eq("id", editing.id);
+
+
+    if(error){
+
+        document.getElementById(
+            "saveMsg"
+        ).textContent = error.message;
+
+        return;
+    }
+
+
+    editing = null;
+
+    await load();
+
+
+    editorEl.innerHTML = `
+        <h3>Deleted</h3>
+        <p>Select another VTC.</p>
+    `;
+}
+
+
+/* ================================
+   COURSES
+================================ */
+
+async function loadCourses(vtcId){
+
+    const {
+        data,
+        error
+    } = await client
+        .from("courses")
+        .select("*")
+        .eq("vtc_id", vtcId)
+        .order("name");
+
+
+    const el =
+        document.getElementById("courseRows");
+
+
+    if(!el){
+        return;
+    }
+
+
+    if(error){
+
+        el.innerHTML =
+            `<div class="notice">
+                Unable to load courses:
+                ${esc(error.message)}
+            </div>`;
+
+        return;
+    }
+
+
+    el.innerHTML =
+        (data || []).map(x => `
+
+            <div class="course-admin-row">
+
+                <div>
+
+                    <b>
+                        ${esc(x.name)}
+                    </b>
+
+                    <span>
+                        ${esc(
+                            x.level ||
+                            "Level not specified"
+                        )}
+
+                        •
+
+                        ${esc(
+                            x.duration ||
+                            "Duration not specified"
+                        )}
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <button
+                        type="button"
+                        class="mini"
+                        onclick="
+                            courseForm(
+                                '${x.vtc_id}',
+                                '${x.id}'
+                            )
+                        "
+                    >
+                        Edit
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="mini danger-mini"
+                        onclick="
+                            deleteCourse(
+                                '${x.id}',
+                                '${x.vtc_id}'
+                            )
+                        "
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+
+        `).join("")
+        ||
+        "<p>No courses added yet.</p>";
+}
+
+
+async function courseForm(
+    vtcId,
+    courseId = null
+){
+
+    let x = {};
+
+
+    if(courseId){
+
+        const { data } = await client
+            .from("courses")
+            .select("*")
+            .eq("id", courseId)
+            .single();
+
+        x = data || {};
+    }
+
+
+    const rowsEl =
+        document.getElementById("courseRows");
+
+
+    rowsEl.innerHTML = `
+
+        <form
+            id="courseForm"
+            class="course-form"
+        >
+
+            <h4>
+                ${courseId
+                    ? "Edit course"
+                    : "Add course"}
+            </h4>
+
+
+            <label>
+                Course name
+
+                <input
+                    id="cn"
+                    required
+                    value="${attr(x.name || "")}"
+                >
+            </label>
+
+
+            <label>
+                Level
+
+                <input
+                    id="cl"
+                    placeholder="e.g. Level 4"
+                    value="${attr(x.level || "")}"
+                >
+            </label>
+
+
+            <label>
+                Duration
+
+                <input
+                    id="cd"
+                    placeholder="e.g. 2 years"
+                    value="${attr(x.duration || "")}"
+                >
+            </label>
+
+
+            <label>
+                Description
+
+                <textarea id="cx">${esc(
+                    x.description || ""
+                )}</textarea>
+            </label>
+
+
+            <label class="check">
+
+                <input
+                    id="ca"
+                    type="checkbox"
+                    ${x.is_active !== false
+                        ? "checked"
+                        : ""}
+                >
+
+                Active
+
+            </label>
+
+
+            <div class="form-actions">
+
+                <button class="btn primary">
+                    Save course
+                </button>
+
+                <button
+                    type="button"
+                    class="btn secondary"
+                    id="cancelCourse"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+
+            <div id="courseMsg"></div>
+
+        </form>
+    `;
+
+
+    document
+        .getElementById("courseForm")
+        .addEventListener(
+            "submit",
+            async e => {
+
+                e.preventDefault();
+
+
+                const obj = {
+
+                    vtc_id: vtcId,
+
+                    name:
+                        document
+                        .getElementById("cn")
+                        .value
+                        .trim(),
+
+                    level:
+                        document
+                        .getElementById("cl")
+                        .value
+                        .trim(),
+
+                    duration:
+                        document
+                        .getElementById("cd")
+                        .value
+                        .trim(),
+
+                    description:
+                        document
+                        .getElementById("cx")
+                        .value
+                        .trim(),
+
+                    is_active:
+                        document
+                        .getElementById("ca")
+                        .checked
+
+                };
+
+
+                const result =
+                    courseId
+
+                    ?
+
+                    await client
+                        .from("courses")
+                        .update(obj)
+                        .eq("id", courseId)
+
+                    :
+
+                    await client
+                        .from("courses")
+                        .insert(obj);
+
+
+                if(result.error){
+
+                    document
+                        .getElementById("courseMsg")
+                        .textContent =
+                        result.error.message;
+
+                    return;
+                }
+
+
+                await loadCourses(vtcId);
+
+            }
+        );
+
+
+    document
+        .getElementById("cancelCourse")
+        .addEventListener(
+            "click",
+            () => loadCourses(vtcId)
+        );
+}
+
+
+async function deleteCourse(
+    id,
+    vtcId
+){
+
+    if(!confirm(
+        "Delete this course?"
+    )){
+        return;
+    }
+
+
+    const { error } =
+        await client
+            .from("courses")
+            .delete()
+            .eq("id", id);
+
+
+    if(error){
+
+        alert(error.message);
+
+        return;
+    }
+
+
+    await loadCourses(vtcId);
+}
+
+
+/* ================================
+   ADMISSIONS
+================================ */
+
+async function loadAdmissions(vtcId){
+
+    const {
+        data,
+        error
+    } = await client
+        .from("admissions")
+        .select("*")
+        .eq("vtc_id", vtcId)
+        .order(
+            "deadline",
+            { ascending: true }
+        );
+
+
+    const el =
+        document.getElementById(
+            "admissionRows"
+        );
+
+
+    if(!el){
+        return;
+    }
+
+
+    if(error){
+
+        el.innerHTML =
+            `<div class="notice">
+                Unable to load admissions:
+                ${esc(error.message)}
+            </div>`;
+
+        return;
+    }
+
+
+    el.innerHTML =
+        (data || []).map(x => `
+
+            <div class="course-admin-row">
+
+                <div>
+
+                    <b>
+                        ${esc(
+                            x.title ||
+                            "Admission"
+                        )}
+                    </b>
+
+                    <span>
+
+                        ${esc(
+                            x.intake ||
+                            "Intake"
+                        )}
+
+                        •
+
+                        ${esc(
+                            x.status ||
+                            "Closed"
+                        )}
+
+                        •
+
+                        ${esc(
+                            x.deadline ||
+                            "No deadline"
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <button
+                        type="button"
+                        class="mini"
+                        onclick="
+                            admissionForm(
+                                '${x.vtc_id}',
+                                '${x.id}'
+                            )
+                        "
+                    >
+                        Edit
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="mini danger-mini"
+                        onclick="
+                            deleteAdmission(
+                                '${x.id}',
+                                '${x.vtc_id}'
+                            )
+                        "
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+
+        `).join("")
+        ||
+        "<p>No admission/intake information added yet.</p>";
+}
+
+
+/* ================================
+   ADMISSION FORM
+================================ */
+
+async function admissionForm(
+    vtcId,
+    admissionId = null
+){
+
+    let x = {
+
+        title: "",
+
+        status: "Closed",
+
+        intake: "",
+
+        deadline: "",
+
+        application_fee: "",
+
+        tuition_fee: "",
+
+        entry_requirements: "",
+
+        instructions: "",
+
+        contact: "",
+
+        application_url: ""
+
+    };
+
+
+    if(admissionId){
+
+        const {
+            data,
+            error
+        } = await client
+            .from("admissions")
+            .select("*")
+            .eq("id", admissionId)
+            .single();
+
+
+        if(!error && data){
+
+            x = data;
+        }
+    }
+
+
+    const el =
+        document.getElementById(
+            "admissionRows"
+        );
+
+
+    el.innerHTML = `
+
+        <form
+            id="admissionForm"
+            class="course-form"
+        >
+
+            <h4>
+                ${admissionId
+                    ? "Edit intake"
+                    : "Add intake"}
+            </h4>
+
+
+            <label>
+
+                Admission / Course Title
+
+                <input
+                    id="at"
+                    required
+                    placeholder="e.g. ICT Level 4"
+                    value="${attr(
+                        x.title || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <label>
+
+                Status
+
+                <select id="as">
+
+                    <option
+                        value="Open"
+                        ${
+                            x.status === "Open"
+                            ? "selected"
+                            : ""
+                        }
+                    >
+                        Open
+                    </option>
+
+                    <option
+                        value="Closed"
+                        ${
+                            x.status === "Closed"
+                            ? "selected"
+                            : ""
+                        }
+                    >
+                        Closed
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <label>
+
+                Intake
+
+                <input
+                    id="ai"
+                    required
+                    placeholder="e.g. September 2026"
+                    value="${attr(
+                        x.intake || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <label>
+
+                Application deadline
+
+                <input
+                    id="ad"
+                    type="date"
+                    value="${attr(
+                        x.deadline || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <label>
+
+                Application fee
+
+                <input
+                    id="af"
+                    placeholder="e.g. KSh 500"
+                    value="${attr(
+                        x.application_fee || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <label>
+
+                Tuition / fee information
+
+                <input
+                    id="tf"
+                    placeholder="e.g. See course fee schedule"
+                    value="${attr(
+                        x.tuition_fee || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <label>
+
+                Entry requirements
+
+                <textarea id="er">${esc(
+                    x.entry_requirements || ""
+                )}</textarea>
+
+            </label>
+
+
+            <label>
+
+                Application instructions
+
+                <textarea id="ix">${esc(
+                    x.instructions || ""
+                )}</textarea>
+
+            </label>
+
+
+            <label>
+
+                Admissions contact
+
+                <input
+                    id="ac"
+                    value="${attr(
+                        x.contact || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <label>
+
+                Application link
+
+                <input
+                    id="al"
+                    type="url"
+                    placeholder="https://…"
+                    value="${attr(
+                        x.application_url || ""
+                    )}"
+                >
+
+            </label>
+
+
+            <div class="form-actions">
+
+                <button
+                    class="btn primary"
+                >
+                    Save intake
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn secondary"
+                    id="cancelAdmission"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+
+            <div id="admissionMsg"></div>
+
+        </form>
+    `;
+
+
+    document
+        .getElementById("admissionForm")
+        .addEventListener(
+            "submit",
+            async e => {
+
+                e.preventDefault();
+
+
+                const obj = {
+
+                    /*
+                     * IMPORTANT:
+                     * title is required because
+                     * admissions.title is NOT NULL.
+                     */
+
+                    title:
+                        document
+                        .getElementById("at")
+                        .value
+                        .trim(),
+
+                    vtc_id: vtcId,
+
+                    status:
+                        document
+                        .getElementById("as")
+                        .value,
+
+                    intake:
+                        document
+                        .getElementById("ai")
+                        .value
+                        .trim(),
+
+                    deadline:
+                        document
+                        .getElementById("ad")
+                        .value
+                        || null,
+
+                    application_fee:
+                        document
+                        .getElementById("af")
+                        .value
+                        .trim(),
+
+                    tuition_fee:
+                        document
+                        .getElementById("tf")
+                        .value
+                        .trim(),
+
+                    entry_requirements:
+                        document
+                        .getElementById("er")
+                        .value
+                        .trim(),
+
+                    instructions:
+                        document
+                        .getElementById("ix")
+                        .value
+                        .trim(),
+
+                    contact:
+                        document
+                        .getElementById("ac")
+                        .value
+                        .trim(),
+
+                    application_url:
+                        document
+                        .getElementById("al")
+                        .value
+                        .trim()
+
+                };
+
+
+                if(!obj.title){
+
+                    document
+                        .getElementById(
+                            "admissionMsg"
+                        )
+                        .textContent =
+                        "Please enter the Admission / Course Title.";
+
+                    return;
+                }
+
+
+                const result =
+                    admissionId
+
+                    ?
+
+                    await client
+                        .from("admissions")
+                        .update(obj)
+                        .eq("id", admissionId)
+
+                    :
+
+                    await client
+                        .from("admissions")
+                        .insert(obj);
+
+
+                if(result.error){
+
+                    document
+                        .getElementById(
+                            "admissionMsg"
+                        )
+                        .textContent =
+                        result.error.message;
+
+                    return;
+                }
+
+
+                await loadAdmissions(vtcId);
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "cancelAdmission"
+        )
+        .addEventListener(
+            "click",
+            () => loadAdmissions(vtcId)
+        );
+}
+
+
+/* ================================
+   DELETE ADMISSION
+================================ */
+
+async function deleteAdmission(
+    id,
+    vtcId
+){
+
+    if(!confirm(
+        "Delete this admission record?"
+    )){
+        return;
+    }
+
+
+    const { error } =
+        await client
+            .from("admissions")
+            .delete()
+            .eq("id", id);
+
+
+    if(error){
+
+        alert(error.message);
+
+        return;
+    }
+
+
+    await loadAdmissions(vtcId);
+}
+
+
+/* ================================
+   ESCAPE HTML
+================================ */
+
+function esc(value){
+
+    return String(value ?? "")
+        .replace(
+            /[&<>"']/g,
+            character => ({
+
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+
+            })[character]
+        );
+}
+
+
+function attr(value){
+
+    return esc(value);
+}
+
+
+/* ================================
+   SEARCH
+================================ */
+
+qEl.addEventListener(
+    "input",
+    renderList
+);
+
+
+/* ================================
+   ADD VTC
+================================ */
+
+addEl.addEventListener(
+    "click",
+    () => {
+
+        editing = null;
+
+        showVTCForm();
+
+    }
+);
+
+
+/* ================================
+   LOGOUT
+================================ */
+
+logoutEl.addEventListener(
+    "click",
+    async () => {
+
+        await client.auth.signOut();
+
+        window.location.href =
+            "login.html";
+
+    }
+);
+
+
+/* ================================
+   START
+================================ */
+
+guard();
 
 </script>
 
