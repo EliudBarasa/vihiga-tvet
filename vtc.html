@@ -10,9 +10,14 @@
     content="width=device-width,initial-scale=1"
 >
 
-<title>VTC Profile | Vihiga TVET</title>
+<title>
+VTC Profile | Vihiga TVET
+</title>
 
-<link rel="stylesheet" href="styles.css">
+<link
+    rel="stylesheet"
+    href="styles.css"
+>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -23,19 +28,29 @@
 
 <body>
 
+
 <header class="site-header">
 
 <div class="container nav">
 
-<a class="brand" href="index.html">
+<a
+    class="brand"
+    href="index.html"
+>
 
-<span class="brand-mark">VT</span>
+<span class="brand-mark">
+VT
+</span>
 
 <span>
 
-<strong>Vihiga TVET</strong>
+<strong>
+Vihiga TVET
+</strong>
 
-<small>VTC Profile</small>
+<small>
+VTC Profile
+</small>
 
 </span>
 
@@ -59,6 +74,7 @@ Admin
 </header>
 
 
+
 <main class="section">
 
 <div
@@ -75,20 +91,26 @@ Loading profile…
 </main>
 
 
+
 <script>
 
-const {createClient}=supabase;
 
-const c=createClient(
-    window.SUPABASE_URL,
-    window.SUPABASE_PUBLISHABLE_KEY
-);
+const {createClient} =
+    supabase;
+
+
+const c =
+    createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_PUBLISHABLE_KEY
+    );
 
 
 const id =
     new URLSearchParams(
         location.search
-    ).get('id');
+    ).get("id");
+
 
 
 async function load(){
@@ -99,77 +121,146 @@ async function load(){
             '<div class="empty">No VTC selected.</div>';
 
         return;
+
     }
 
 
+
     /* ================================
-       LOAD VTC PROFILE
+       VTC
     ================================= */
 
     const {
         data:v,
         error
-    } = await c
-        .from('vtcs')
-        .select('*')
-        .eq('id',id)
-        .eq('is_published',true)
-        .single();
+    } =
+        await c
+            .from("vtcs")
+            .select("*")
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "is_published",
+                true
+            )
+            .single();
 
 
-    if(error || !v){
+    if(
+        error ||
+        !v
+    ){
 
         profile.innerHTML =
             '<div class="empty">VTC profile not found.</div>';
 
         return;
+
     }
 
 
+
     /* ================================
-       LOAD COURSES
+       COURSES
     ================================= */
 
     const {
         data:courses,
         error:ce
-    } = await c
-        .from('courses')
-        .select('*')
-        .eq('vtc_id',id)
-        .eq('is_active',true)
-        .order('name');
+    } =
+        await c
+            .from("courses")
+            .select("*")
+            .eq(
+                "vtc_id",
+                id
+            )
+            .eq(
+                "is_active",
+                true
+            )
+            .order("name");
+
 
 
     /* ================================
-       LOAD ADMISSIONS
+       ADMISSIONS
     ================================= */
 
     const {
         data:admissions,
         error:ae
-    } = await c
-        .from('admissions')
-        .select('*')
-        .eq('vtc_id',id)
-        .order(
-            'deadline',
-            {
-                ascending:true
-            }
-        );
+    } =
+        await c
+            .from("admissions")
+            .select("*")
+            .eq(
+                "vtc_id",
+                id
+            )
+            .order(
+                "deadline",
+                {
+                    ascending:true
+                }
+            );
+
 
 
     /* ================================
-       ENROLMENT DISPLAY
+       ENROLMENT
     ================================= */
 
     const enrolment =
-        Number(v.enrolment || 0);
+        Number(
+            v.enrolment || 0
+        );
 
 
     const enrolmentDisplay =
         enrolment.toLocaleString();
+
+
+
+    /* ================================
+       PHOTO
+    ================================= */
+
+    const photo =
+        v.photo_url
+            ? `
+
+                <div
+                    style="
+                        margin:0 0 30px 0;
+                    "
+                >
+
+                    <img
+                        src="${escAttr(v.photo_url)}"
+                        alt="${escAttr(
+                            v.name +
+                            " institution photo"
+                        )}"
+                        style="
+                            width:100%;
+                            max-height:420px;
+                            object-fit:cover;
+                            border-radius:16px;
+                            display:block;
+                        "
+                        onerror="
+                            this.style.display='none';
+                        "
+                    >
+
+                </div>
+
+            `
+            : "";
+
 
 
     /* ================================
@@ -178,31 +269,46 @@ async function load(){
 
     profile.innerHTML = `
 
+
+        ${photo}
+
+
+
         <span class="eyebrow">
+
             ${esc(
                 v.sub_county ||
-                'VIHIGA COUNTY'
+                "VIHIGA COUNTY"
             )}
+
         </span>
 
 
+
         <h1>
+
             ${esc(v.name)}
+
         </h1>
 
 
+
         <p class="hero-copy">
+
             📍
+
             ${esc(
                 v.ward ||
                 v.location ||
-                'Location to be confirmed'
+                "Location to be confirmed"
             )}
+
         </p>
 
 
+
         <!-- ============================
-             PROFILE INFORMATION
+             INFORMATION
         ============================= -->
 
         <div class="profile-grid">
@@ -215,13 +321,16 @@ async function load(){
                 </b>
 
                 <span>
+
                     ${esc(
                         v.tveta_status ||
-                        'To be verified'
+                        "To be verified"
                     )}
+
                 </span>
 
             </div>
+
 
 
             <div>
@@ -231,13 +340,16 @@ async function load(){
                 </b>
 
                 <span>
+
                     ${esc(
                         v.principal_name ||
-                        'Not published'
+                        "Not published"
                     )}
+
                 </span>
 
             </div>
+
 
 
             <div>
@@ -247,13 +359,16 @@ async function load(){
                 </b>
 
                 <span>
+
                     ${esc(
                         v.phone ||
-                        'Not published'
+                        "Not published"
                     )}
+
                 </span>
 
             </div>
+
 
 
             <div>
@@ -263,18 +378,17 @@ async function load(){
                 </b>
 
                 <span>
+
                     ${esc(
                         v.whatsapp ||
-                        'Not published'
+                        "Not published"
                     )}
+
                 </span>
 
             </div>
 
 
-            <!-- ============================
-                 ENROLMENT
-            ============================= -->
 
             <div>
 
@@ -283,14 +397,18 @@ async function load(){
                 </b>
 
                 <span>
+
                     ${enrolmentDisplay}
+
                     trainees
+
                 </span>
 
             </div>
 
 
         </div>
+
 
 
         <!-- ============================
@@ -302,7 +420,9 @@ async function load(){
         </h2>
 
 
+
         <div class="course-list">
+
 
             ${
                 ce
@@ -314,8 +434,11 @@ async function load(){
                 :
 
                 (
+
                     (courses || [])
+
                     .map(
+
                         x => `
 
                         <article
@@ -329,35 +452,45 @@ async function load(){
                                 </b>
 
                                 <span>
+
                                     ${esc(
                                         x.level ||
-                                        'Level not specified'
+                                        "Level not specified"
                                     )}
+
                                 </span>
 
                             </div>
 
 
                             <span>
+
                                 ${esc(
                                     x.duration ||
-                                    'Duration not specified'
+                                    "Duration not specified"
                                 )}
+
                             </span>
 
                         </article>
 
                         `
+
                     )
-                    .join('')
+
+                    .join("")
 
                     ||
 
                     '<div class="empty">Courses are being updated.</div>'
+
                 )
+
             }
 
+
         </div>
+
 
 
         <!-- ============================
@@ -369,10 +502,12 @@ async function load(){
         </h2>
 
 
+
         <div
             id="admissions"
             class="course-list"
         >
+
 
             ${
                 ae
@@ -384,8 +519,11 @@ async function load(){
                 :
 
                 (
+
                     (admissions || [])
+
                     .map(
+
                         x => `
 
                         <article
@@ -395,10 +533,12 @@ async function load(){
                             <div>
 
                                 <b>
+
                                     ${esc(
                                         x.intake ||
-                                        'Admission'
+                                        "Admission"
                                     )}
+
                                 </b>
 
 
@@ -406,7 +546,7 @@ async function load(){
 
                                     ${esc(
                                         x.status ||
-                                        'Closed'
+                                        "Closed"
                                     )}
 
                                     ${
@@ -414,22 +554,27 @@ async function load(){
 
                                         ?
 
-                                        ' • Deadline: ' +
-                                        esc(x.deadline)
+                                        " • Deadline: " +
+                                        esc(
+                                            x.deadline
+                                        )
 
                                         :
 
-                                        ''
+                                        ""
+
                                     }
 
                                 </span>
 
 
                                 <small>
+
                                     ${esc(
                                         x.entry_requirements ||
-                                        ''
+                                        ""
                                     )}
+
                                 </small>
 
                             </div>
@@ -443,6 +588,7 @@ async function load(){
                                     ?
 
                                     `
+
                                     <a
                                         class="btn primary"
                                         href="${escAttr(
@@ -451,13 +597,17 @@ async function load(){
                                         target="_blank"
                                         rel="noopener"
                                     >
+
                                         Apply now
+
                                     </a>
+
                                     `
 
                                     :
 
-                                    ''
+                                    ""
+
                                 }
 
                             </div>
@@ -465,20 +615,26 @@ async function load(){
                         </article>
 
                         `
+
                     )
-                    .join('')
+
+                    .join("")
 
                     ||
 
                     '<div class="empty">Admission information is being updated.</div>'
+
                 )
+
             }
+
 
         </div>
 
 
+
         <!-- ============================
-             ABOUT VTC
+             ABOUT
         ============================= -->
 
         <h2>
@@ -486,12 +642,16 @@ async function load(){
         </h2>
 
 
+
         <p>
+
             ${esc(
                 v.description ||
-                'Profile information is being developed.'
+                "Profile information is being developed."
             )}
+
         </p>
+
 
 
         ${
@@ -500,33 +660,49 @@ async function load(){
             ?
 
             `
+
             <a
                 class="btn primary"
                 href="${escAttr(v.map_url)}"
                 target="_blank"
                 rel="noopener"
             >
+
                 Open location
+
             </a>
+
             `
 
             :
 
-            ''
+            ""
+
         }
 
 
-        <p style="margin-top:30px">
 
-            <a href="index.html#directory">
+        <p
+            style="
+                margin-top:30px
+            "
+        >
+
+            <a
+                href="index.html#directory"
+            >
+
                 ← Back to directory
+
             </a>
 
         </p>
 
+
     `;
 
 }
+
 
 
 /* ================================
@@ -535,17 +711,23 @@ async function load(){
 
 function esc(s){
 
-    return String(s ?? '')
-        .replace(
-            /[&<>"']/g,
-            c => ({
-                '&':'&amp;',
-                '<':'&lt;',
-                '>':'&gt;',
-                '"':'&quot;',
-                "'":'&#039;'
-            }[c])
-        );
+    return String(
+        s ?? ""
+    )
+    .replace(
+        /[&<>"']/g,
+
+        c => ({
+
+            "&":"&amp;",
+            "<":"&lt;",
+            ">":"&gt;",
+            '"':"&quot;",
+            "'":"&#039;"
+
+        }[c])
+
+    );
 
 }
 
@@ -555,6 +737,7 @@ function escAttr(s){
     return esc(s);
 
 }
+
 
 
 /* ================================
