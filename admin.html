@@ -1,80 +1,147 @@
 <!doctype html>
 <html lang="en">
+
 <head>
+
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
 
 <title>Vihiga TVET Admin</title>
 
-<link rel="stylesheet" href="styles.css">
+<link
+    rel="stylesheet"
+    href="styles.css"
+>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="config.js"></script>
+
 </head>
+
 
 <body>
 
+
 <header class="site-header">
+
 <div class="container nav">
 
-<a class="brand" href="index.html">
-<span class="brand-mark">VT</span>
-<span>
-<strong>Vihiga TVET</strong>
-<small>Admin Dashboard</small>
+<a
+    class="brand"
+    href="index.html"
+>
+
+<span class="brand-mark">
+VT
 </span>
+
+<span>
+
+<strong>
+Vihiga TVET
+</strong>
+
+<small>
+Admin Dashboard
+</small>
+
+</span>
+
 </a>
 
-<button id="logout" class="btn secondary">
+
+<button
+    id="logout"
+    class="btn secondary"
+>
+
 Sign out
+
 </button>
 
 </div>
+
 </header>
+
 
 
 <main class="section">
 
 <div class="container">
 
+
 <div class="section-head">
 
 <div>
-<span class="eyebrow">ADMINISTRATION</span>
-<h2>VTC Directory</h2>
+
+<span class="eyebrow">
+ADMINISTRATION
+</span>
+
+<h2>
+VTC Directory
+</h2>
+
 </div>
 
-<button id="add" class="btn primary">
+
+<button
+    id="add"
+    class="btn primary"
+>
+
 + Add VTC
+
 </button>
 
 </div>
 
 
+
 <div class="admin-grid">
+
 
 <section>
 
+
 <input
-id="q"
-class="wide-input"
-placeholder="Search VTCs…"
+    id="q"
+    class="wide-input"
+    placeholder="Search VTCs…"
 >
 
-<div id="rows" class="admin-list"></div>
+
+<div
+    id="rows"
+    class="admin-list"
+></div>
+
 
 </section>
 
 
-<aside class="editor" id="editor">
 
-<h3>Select a VTC</h3>
+<aside
+    class="editor"
+    id="editor"
+>
+
+<h3>
+Select a VTC
+</h3>
 
 <p>
-Choose a centre to edit, or tap “Add VTC”.
+Choose a centre to edit, or tap
+“Add VTC”.
 </p>
 
 </aside>
+
 
 </div>
 
@@ -83,26 +150,46 @@ Choose a centre to edit, or tap “Add VTC”.
 </main>
 
 
+
 <script>
-
-const client = supabase.createClient(
-    window.SUPABASE_URL,
-    window.SUPABASE_PUBLISHABLE_KEY
-);
-
-let rows = [];
-let editing = null;
 
 
 /* ================================
-   ELEMENT REFERENCES
+   SUPABASE
 ================================ */
 
-const qEl = document.getElementById("q");
-const rowsEl = document.getElementById("rows");
-const editorEl = document.getElementById("editor");
-const addEl = document.getElementById("add");
-const logoutEl = document.getElementById("logout");
+const client =
+    supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_PUBLISHABLE_KEY
+    );
+
+
+let rows = [];
+
+let editing = null;
+
+
+
+/* ================================
+   ELEMENTS
+================================ */
+
+const qEl =
+    document.getElementById("q");
+
+const rowsEl =
+    document.getElementById("rows");
+
+const editorEl =
+    document.getElementById("editor");
+
+const addEl =
+    document.getElementById("add");
+
+const logoutEl =
+    document.getElementById("logout");
+
 
 
 /* ================================
@@ -112,13 +199,21 @@ const logoutEl = document.getElementById("logout");
 async function guard(){
 
     const {
-        data: { user },
+        data: {
+            user
+        },
         error: userError
-    } = await client.auth.getUser();
+    } =
+        await client.auth.getUser();
 
-    if(userError || !user){
 
-        window.location.href = "login.html";
+    if(
+        userError ||
+        !user
+    ){
+
+        window.location.href =
+            "login.html";
 
         return;
     }
@@ -127,26 +222,33 @@ async function guard(){
     const {
         data: profile,
         error: profileError
-    } = await client
-        .from("admin_profiles")
-        .select("*")
-        .eq("id", user.id)
-        .eq("is_active", true)
-        .single();
+    } =
+        await client
+            .from("admin_profiles")
+            .select("*")
+            .eq("id",user.id)
+            .eq("is_active",true)
+            .single();
 
 
-    if(profileError || !profile){
+    if(
+        profileError ||
+        !profile
+    ){
 
         await client.auth.signOut();
 
-        window.location.href = "login.html";
+        window.location.href =
+            "login.html";
 
         return;
     }
 
 
     await load();
+
 }
+
 
 
 /* ================================
@@ -158,10 +260,11 @@ async function load(){
     const {
         data,
         error
-    } = await client
-        .from("vtcs")
-        .select("*")
-        .order("name");
+    } =
+        await client
+            .from("vtcs")
+            .select("*")
+            .order("name");
 
 
     if(error){
@@ -172,16 +275,23 @@ async function load(){
             esc(error.message) +
             "</div>";
 
-        console.error("VTC LOAD ERROR:", error);
+        console.error(
+            "VTC LOAD ERROR:",
+            error
+        );
 
         return;
     }
 
 
-    rows = data || [];
+    rows =
+        data || [];
+
 
     renderList();
+
 }
+
 
 
 /* ================================
@@ -192,45 +302,76 @@ function renderList(){
 
     const search =
         qEl.value
-        .trim()
-        .toLowerCase();
-
-
-    const filtered = rows.filter(v => {
-
-        const text =
-            `${v.name || ""} ${v.sub_county || ""} ${v.ward || ""}`
+            .trim()
             .toLowerCase();
 
-        return text.includes(search);
-    });
+
+    const filtered =
+        rows.filter(
+
+            v => {
+
+                const text =
+                    `${v.name || ""}
+                    ${v.sub_county || ""}
+                    ${v.ward || ""}`
+                    .toLowerCase();
+
+
+                return text.includes(search);
+
+            }
+
+        );
 
 
     rowsEl.innerHTML =
-        filtered.map(v => `
 
-            <button
-                type="button"
-                class="admin-row"
-                onclick="editVTC('${v.id}')"
-            >
+        filtered
 
-                <strong>
-                    ${esc(v.name)}
-                </strong>
+            .map(
 
-                <span>
-                    ${esc(v.sub_county || "")}
-                    •
-                    ${esc(v.ward || "")}
-                </span>
+                v => `
 
-            </button>
+                <button
+                    type="button"
+                    class="admin-row"
+                    onclick="editVTC('${v.id}')"
+                >
 
-        `).join("")
-        ||
-        "<p>No centres found.</p>";
+                    <strong>
+                        ${esc(v.name)}
+                    </strong>
+
+
+                    <span>
+
+                        ${esc(
+                            v.sub_county || ""
+                        )}
+
+                        •
+
+                        ${esc(
+                            v.ward || ""
+                        )}
+
+                    </span>
+
+                </button>
+
+                `
+
+            )
+
+            .join("")
+
+            ||
+
+            "<p>No centres found.</p>";
+
 }
+
 
 
 /* ================================
@@ -239,14 +380,21 @@ function renderList(){
 
 function editVTC(id){
 
-    editing = rows.find(v => v.id === id);
+    editing =
+        rows.find(
+            v => v.id === id
+        );
+
 
     if(!editing){
         return;
     }
 
+
     showVTCForm(editing);
+
 }
+
 
 
 /* ================================
@@ -258,243 +406,445 @@ function showVTCForm(v = {}){
     editorEl.innerHTML = `
 
         <h3>
-            ${v.id ? "Edit VTC" : "Add VTC"}
+
+            ${v.id
+                ? "Edit VTC"
+                : "Add VTC"}
+
         </h3>
+
 
         <form id="vtcForm">
 
+
             <label>
+
                 Name
+
                 <input
                     id="name"
                     required
-                    value="${attr(v.name || "")}"
+                    value="${attr(
+                        v.name || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 Sub-county
+
                 <input
                     id="sub"
-                    value="${attr(v.sub_county || "")}"
+                    value="${attr(
+                        v.sub_county || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 Ward
+
                 <input
                     id="ward"
-                    value="${attr(v.ward || "")}"
+                    value="${attr(
+                        v.ward || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 Location
+
                 <input
                     id="loc"
-                    value="${attr(v.location || "")}"
+                    value="${attr(
+                        v.location || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 Phone
+
                 <input
                     id="phone"
-                    value="${attr(v.phone || "")}"
+                    value="${attr(
+                        v.phone || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 WhatsApp
+
                 <input
                     id="wa"
-                    value="${attr(v.whatsapp || "")}"
+                    value="${attr(
+                        v.whatsapp || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 Email
+
                 <input
                     id="email"
-                    value="${attr(v.email || "")}"
+                    value="${attr(
+                        v.email || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 Principal/Manager
+
                 <input
                     id="principal"
-                    value="${attr(v.principal_name || "")}"
+                    value="${attr(
+                        v.principal_name || ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
                 TVETA status
+
                 <input
                     id="tveta"
-                    value="${attr(v.tveta_status || "To be verified")}"
+                    value="${attr(
+                        v.tveta_status ||
+                        "To be verified"
+                    )}"
                 >
+
             </label>
 
 
-            <!-- ================================
-                 ENROLMENT
-            ================================= -->
 
             <label>
+
                 Current Enrolment
+
                 <input
                     id="enrolment"
                     type="number"
                     min="0"
-                    step="1"
-                    placeholder="e.g. 120"
-                    value="${attr(v.enrolment ?? 0)}"
+                    placeholder="e.g. 150"
+                    value="${attr(
+                        v.enrolment ?? ""
+                    )}"
                 >
+
             </label>
 
 
+
             <label>
+
+                Institution Photo URL
+
+                <input
+                    id="photo"
+                    type="url"
+                    placeholder="https://..."
+                    value="${attr(
+                        v.photo_url || ""
+                    )}"
+                >
+
+                <small>
+                    Paste a publicly accessible image URL.
+                </small>
+
+            </label>
+
+
+
+            ${
+                v.photo_url
+
+                ?
+
+                `
+
+                <div
+                    style="
+                        margin:12px 0;
+                    "
+                >
+
+                    <strong>
+                        Current Photo
+                    </strong>
+
+                    <br><br>
+
+                    <img
+                        src="${attr(v.photo_url)}"
+                        alt="${attr(v.name || "VTC photo")}"
+                        style="
+                            width:100%;
+                            max-width:420px;
+                            height:220px;
+                            object-fit:cover;
+                            border-radius:12px;
+                            display:block;
+                        "
+                        onerror="this.style.display='none'"
+                    >
+
+                </div>
+
+                `
+
+                :
+
+                ""
+
+            }
+
+
+
+            <label>
+
                 Map URL
+
                 <input
                     id="map"
-                    value="${attr(v.map_url || "")}"
+                    value="${attr(
+                        v.map_url || ""
+                    )}"
                 >
+
             </label>
+
 
 
             <label>
+
                 Description
-                <textarea id="desc">${esc(v.description || "")}</textarea>
+
+                <textarea id="desc">${esc(
+                    v.description || ""
+                )}</textarea>
+
             </label>
+
 
 
             <label class="check">
+
                 <input
                     id="pub"
                     type="checkbox"
-                    ${v.is_published !== false ? "checked" : ""}
+                    ${
+                        v.is_published !== false
+                        ? "checked"
+                        : ""
+                    }
                 >
+
                 Published
+
             </label>
+
 
 
             <div class="form-actions">
 
+
                 <button
-                    type="submit"
                     class="btn primary"
                 >
+
                     Save
+
                 </button>
+
 
                 ${
                     v.id
+
                     ?
-                    `<button
+
+                    `
+
+                    <button
                         type="button"
                         class="btn danger"
                         id="del"
                     >
+
                         Delete
-                    </button>`
+
+                    </button>
+
+                    `
+
                     :
+
                     ""
+
                 }
+
 
             </div>
 
 
             <div id="saveMsg"></div>
 
+
         </form>
+
 
 
         ${
             v.id
+
             ?
+
             `
 
             <hr>
 
+
             <div class="course-admin">
+
 
                 <div class="course-admin-head">
 
-                    <h3>Courses</h3>
+                    <h3>
+                        Courses
+                    </h3>
+
 
                     <button
                         type="button"
                         class="btn primary"
                         id="newCourse"
                     >
+
                         + Add course
+
                     </button>
 
                 </div>
 
+
                 <div id="courseRows">
+
                     <div class="loading">
                         Loading courses…
                     </div>
+
                 </div>
 
+
             </div>
+
 
 
             <hr>
 
 
+
             <div class="course-admin">
+
 
                 <div class="course-admin-head">
 
-                    <h3>Admissions</h3>
+                    <h3>
+                        Admissions
+                    </h3>
+
 
                     <button
                         type="button"
                         class="btn primary"
                         id="newAdmission"
                     >
+
                         + Add intake
+
                     </button>
 
                 </div>
 
+
                 <div id="admissionRows">
+
                     <div class="loading">
                         Loading admissions…
                     </div>
+
                 </div>
+
 
             </div>
 
             `
+
             :
+
             ""
+
         }
 
     `;
 
 
+
     document
         .getElementById("vtcForm")
-        .addEventListener("submit", saveVTC);
+        .addEventListener(
+            "submit",
+            saveVTC
+        );
+
 
 
     if(v.id){
 
+
         document
             .getElementById("del")
-            .addEventListener("click", deleteVTC);
+            .addEventListener(
+                "click",
+                deleteVTC
+            );
 
 
         document
@@ -516,8 +866,11 @@ function showVTCForm(v = {}){
         loadCourses(v.id);
 
         loadAdmissions(v.id);
+
     }
+
 }
+
 
 
 /* ================================
@@ -529,114 +882,105 @@ async function saveVTC(e){
     e.preventDefault();
 
 
-    const nameEl =
-        document.getElementById("name");
-
-    const subEl =
-        document.getElementById("sub");
-
-    const wardEl =
-        document.getElementById("ward");
-
-    const locEl =
-        document.getElementById("loc");
-
-    const phoneEl =
-        document.getElementById("phone");
-
-    const waEl =
-        document.getElementById("wa");
-
-    const emailEl =
-        document.getElementById("email");
-
-    const principalEl =
-        document.getElementById("principal");
-
-    const tvetaEl =
-        document.getElementById("tveta");
-
-    const enrolmentEl =
-        document.getElementById("enrolment");
-
-    const mapEl =
-        document.getElementById("map");
-
-    const descEl =
-        document.getElementById("desc");
-
-    const pubEl =
-        document.getElementById("pub");
-
-    const msgEl =
-        document.getElementById("saveMsg");
-
-
-    /* ================================
-       VALIDATE ENROLMENT
-    ================================= */
-
-    const enrolmentValue =
-        Number(enrolmentEl.value);
-
-
-    if(
-        enrolmentEl.value !== "" &&
-        (
-            !Number.isInteger(enrolmentValue) ||
-            enrolmentValue < 0
-        )
-    ){
-
-        msgEl.textContent =
-            "Enrolment must be a whole number of 0 or more.";
-
-        return;
-    }
-
-
     const obj = {
 
         name:
-            nameEl.value.trim(),
+            document
+                .getElementById("name")
+                .value
+                .trim(),
+
 
         sub_county:
-            subEl.value.trim(),
+            document
+                .getElementById("sub")
+                .value
+                .trim(),
+
 
         ward:
-            wardEl.value.trim(),
+            document
+                .getElementById("ward")
+                .value
+                .trim(),
+
 
         location:
-            locEl.value.trim(),
+            document
+                .getElementById("loc")
+                .value
+                .trim(),
+
 
         phone:
-            phoneEl.value.trim(),
+            document
+                .getElementById("phone")
+                .value
+                .trim(),
+
 
         whatsapp:
-            waEl.value.trim(),
+            document
+                .getElementById("wa")
+                .value
+                .trim(),
+
 
         email:
-            emailEl.value.trim(),
+            document
+                .getElementById("email")
+                .value
+                .trim(),
+
 
         principal_name:
-            principalEl.value.trim(),
+            document
+                .getElementById("principal")
+                .value
+                .trim(),
+
 
         tveta_status:
-            tvetaEl.value.trim(),
+            document
+                .getElementById("tveta")
+                .value
+                .trim(),
+
 
         enrolment:
-            enrolmentEl.value === ""
-            ? 0
-            : enrolmentValue,
+            Number(
+                document
+                    .getElementById("enrolment")
+                    .value
+            ) || 0,
+
+
+        photo_url:
+            document
+                .getElementById("photo")
+                .value
+                .trim(),
+
 
         map_url:
-            mapEl.value.trim(),
+            document
+                .getElementById("map")
+                .value
+                .trim(),
+
 
         description:
-            descEl.value.trim(),
+            document
+                .getElementById("desc")
+                .value
+                .trim(),
+
 
         is_published:
-            pubEl.checked,
+            document
+                .getElementById("pub")
+                .checked,
+
 
         updated_at:
             new Date().toISOString()
@@ -649,18 +993,31 @@ async function saveVTC(e){
 
     if(editing){
 
-        result = await client
-            .from("vtcs")
-            .update(obj)
-            .eq("id", editing.id);
-
-    }else{
-
-        result = await client
-            .from("vtcs")
-            .insert(obj);
+        result =
+            await client
+                .from("vtcs")
+                .update(obj)
+                .eq(
+                    "id",
+                    editing.id
+                );
 
     }
+
+    else{
+
+        result =
+            await client
+                .from("vtcs")
+                .insert(obj);
+
+    }
+
+
+    const msgEl =
+        document.getElementById(
+            "saveMsg"
+        );
 
 
     if(result.error){
@@ -668,23 +1025,15 @@ async function saveVTC(e){
         msgEl.textContent =
             result.error.message;
 
-        console.error(
-            "VTC SAVE ERROR:",
-            result.error
-        );
-
         return;
+
     }
-
-
-    msgEl.textContent =
-        "Saved successfully.";
 
 
     const savedId =
         editing
-        ? editing.id
-        : null;
+            ? editing.id
+            : null;
 
 
     await load();
@@ -694,16 +1043,29 @@ async function saveVTC(e){
 
         editVTC(savedId);
 
-    }else{
+    }
+
+    else{
 
         editing = null;
 
         editorEl.innerHTML = `
-            <h3>Saved</h3>
-            <p>Select the new VTC to add courses.</p>
+
+            <h3>
+                Saved
+            </h3>
+
+            <p>
+                Select the new VTC to add
+                courses and admissions.
+            </p>
+
         `;
+
     }
+
 }
+
 
 
 /* ================================
@@ -717,27 +1079,40 @@ async function deleteVTC(){
     }
 
 
-    if(!confirm(
-        "Delete this VTC and its courses?"
-    )){
+    if(
+        !confirm(
+            "Delete this VTC and its courses?"
+        )
+    ){
+
         return;
+
     }
 
 
-    const { error } = await client
-        .from("vtcs")
-        .delete()
-        .eq("id", editing.id);
+    const {
+        error
+    } =
+        await client
+            .from("vtcs")
+            .delete()
+            .eq(
+                "id",
+                editing.id
+            );
 
 
     if(error){
 
-        document.getElementById(
-            "saveMsg"
-        ).textContent =
+        document
+            .getElementById(
+                "saveMsg"
+            )
+            .textContent =
             error.message;
 
         return;
+
     }
 
 
@@ -747,10 +1122,19 @@ async function deleteVTC(){
 
 
     editorEl.innerHTML = `
-        <h3>Deleted</h3>
-        <p>Select another VTC.</p>
+
+        <h3>
+            Deleted
+        </h3>
+
+        <p>
+            Select another VTC.
+        </p>
+
     `;
+
 }
+
 
 
 /* ================================
@@ -762,15 +1146,21 @@ async function loadCourses(vtcId){
     const {
         data,
         error
-    } = await client
-        .from("courses")
-        .select("*")
-        .eq("vtc_id", vtcId)
-        .order("name");
+    } =
+        await client
+            .from("courses")
+            .select("*")
+            .eq(
+                "vtc_id",
+                vtcId
+            )
+            .order("name");
 
 
     const el =
-        document.getElementById("courseRows");
+        document.getElementById(
+            "courseRows"
+        );
 
 
     if(!el){
@@ -787,75 +1177,101 @@ async function loadCourses(vtcId){
             </div>`;
 
         return;
+
     }
 
 
     el.innerHTML =
-        (data || []).map(x => `
 
-            <div class="course-admin-row">
+        (data || [])
 
-                <div>
+            .map(
 
-                    <b>
-                        ${esc(x.name)}
-                    </b>
+                x => `
 
-                    <span>
-                        ${esc(
-                            x.level ||
-                            "Level not specified"
-                        )}
+                <div
+                    class="course-admin-row"
+                >
 
-                        •
+                    <div>
 
-                        ${esc(
-                            x.duration ||
-                            "Duration not specified"
-                        )}
-                    </span>
+                        <b>
+                            ${esc(x.name)}
+                        </b>
+
+                        <span>
+
+                            ${esc(
+                                x.level ||
+                                "Level not specified"
+                            )}
+
+                            •
+
+                            ${esc(
+                                x.duration ||
+                                "Duration not specified"
+                            )}
+
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <button
+                            type="button"
+                            class="mini"
+                            onclick="
+                                courseForm(
+                                    '${x.vtc_id}',
+                                    '${x.id}'
+                                )
+                            "
+                        >
+
+                            Edit
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="mini danger-mini"
+                            onclick="
+                                deleteCourse(
+                                    '${x.id}',
+                                    '${x.vtc_id}'
+                                )
+                            "
+                        >
+
+                            Delete
+
+                        </button>
+
+                    </div>
 
                 </div>
 
+                `
 
-                <div>
+            )
 
-                    <button
-                        type="button"
-                        class="mini"
-                        onclick="
-                            courseForm(
-                                '${x.vtc_id}',
-                                '${x.id}'
-                            )
-                        "
-                    >
-                        Edit
-                    </button>
+            .join("")
 
+            ||
 
-                    <button
-                        type="button"
-                        class="mini danger-mini"
-                        onclick="
-                            deleteCourse(
-                                '${x.id}',
-                                '${x.vtc_id}'
-                            )
-                        "
-                    >
-                        Delete
-                    </button>
+            "<p>No courses added yet.</p>";
 
-                </div>
-
-            </div>
-
-        `).join("")
-        ||
-        "<p>No courses added yet.</p>";
 }
 
+
+
+/* ================================
+   COURSE FORM
+================================ */
 
 async function courseForm(
     vtcId,
@@ -867,18 +1283,29 @@ async function courseForm(
 
     if(courseId){
 
-        const { data } = await client
-            .from("courses")
-            .select("*")
-            .eq("id", courseId)
-            .single();
+        const {
+            data
+        } =
+            await client
+                .from("courses")
+                .select("*")
+                .eq(
+                    "id",
+                    courseId
+                )
+                .single();
 
-        x = data || {};
+
+        x =
+            data || {};
+
     }
 
 
     const rowsEl =
-        document.getElementById("courseRows");
+        document.getElementById(
+            "courseRows"
+        );
 
 
     rowsEl.innerHTML = `
@@ -889,51 +1316,69 @@ async function courseForm(
         >
 
             <h4>
-                ${courseId
+
+                ${
+                    courseId
                     ? "Edit course"
-                    : "Add course"}
+                    : "Add course"
+                }
+
             </h4>
 
 
             <label>
+
                 Course name
 
                 <input
                     id="cn"
                     required
-                    value="${attr(x.name || "")}"
+                    value="${attr(
+                        x.name || ""
+                    )}"
                 >
+
             </label>
 
 
             <label>
+
                 Level
 
                 <input
                     id="cl"
                     placeholder="e.g. Level 4"
-                    value="${attr(x.level || "")}"
+                    value="${attr(
+                        x.level || ""
+                    )}"
                 >
+
             </label>
 
 
             <label>
+
                 Duration
 
                 <input
                     id="cd"
                     placeholder="e.g. 2 years"
-                    value="${attr(x.duration || "")}"
+                    value="${attr(
+                        x.duration || ""
+                    )}"
                 >
+
             </label>
 
 
             <label>
+
                 Description
 
                 <textarea id="cx">${esc(
                     x.description || ""
                 )}</textarea>
+
             </label>
 
 
@@ -942,9 +1387,11 @@ async function courseForm(
                 <input
                     id="ca"
                     type="checkbox"
-                    ${x.is_active !== false
+                    ${
+                        x.is_active !== false
                         ? "checked"
-                        : ""}
+                        : ""
+                    }
                 >
 
                 Active
@@ -955,18 +1402,22 @@ async function courseForm(
             <div class="form-actions">
 
                 <button
-                    type="submit"
                     class="btn primary"
                 >
+
                     Save course
+
                 </button>
+
 
                 <button
                     type="button"
                     class="btn secondary"
                     id="cancelCourse"
                 >
+
                     Cancel
+
                 </button>
 
             </div>
@@ -975,7 +1426,9 @@ async function courseForm(
             <div id="courseMsg"></div>
 
         </form>
+
     `;
+
 
 
     document
@@ -989,36 +1442,42 @@ async function courseForm(
 
                 const obj = {
 
-                    vtc_id: vtcId,
+                    vtc_id:
+                        vtcId,
+
 
                     name:
                         document
-                        .getElementById("cn")
-                        .value
-                        .trim(),
+                            .getElementById("cn")
+                            .value
+                            .trim(),
+
 
                     level:
                         document
-                        .getElementById("cl")
-                        .value
-                        .trim(),
+                            .getElementById("cl")
+                            .value
+                            .trim(),
+
 
                     duration:
                         document
-                        .getElementById("cd")
-                        .value
-                        .trim(),
+                            .getElementById("cd")
+                            .value
+                            .trim(),
+
 
                     description:
                         document
-                        .getElementById("cx")
-                        .value
-                        .trim(),
+                            .getElementById("cx")
+                            .value
+                            .trim(),
+
 
                     is_active:
                         document
-                        .getElementById("ca")
-                        .checked
+                            .getElementById("ca")
+                            .checked
 
                 };
 
@@ -1031,7 +1490,10 @@ async function courseForm(
                     await client
                         .from("courses")
                         .update(obj)
-                        .eq("id", courseId)
+                        .eq(
+                            "id",
+                            courseId
+                        )
 
                     :
 
@@ -1043,46 +1505,69 @@ async function courseForm(
                 if(result.error){
 
                     document
-                        .getElementById("courseMsg")
+                        .getElementById(
+                            "courseMsg"
+                        )
                         .textContent =
                         result.error.message;
 
                     return;
+
                 }
 
 
-                await loadCourses(vtcId);
+                await loadCourses(
+                    vtcId
+                );
 
             }
         );
 
 
     document
-        .getElementById("cancelCourse")
+        .getElementById(
+            "cancelCourse"
+        )
         .addEventListener(
             "click",
-            () => loadCourses(vtcId)
+            () =>
+                loadCourses(vtcId)
         );
+
 }
 
+
+
+/* ================================
+   DELETE COURSE
+================================ */
 
 async function deleteCourse(
     id,
     vtcId
 ){
 
-    if(!confirm(
-        "Delete this course?"
-    )){
+    if(
+        !confirm(
+            "Delete this course?"
+        )
+    ){
+
         return;
+
     }
 
 
-    const { error } =
+    const {
+        error
+    } =
         await client
             .from("courses")
             .delete()
-            .eq("id", id);
+            .eq(
+                "id",
+                id
+            );
 
 
     if(error){
@@ -1090,30 +1575,43 @@ async function deleteCourse(
         alert(error.message);
 
         return;
+
     }
 
 
-    await loadCourses(vtcId);
+    await loadCourses(
+        vtcId
+    );
+
 }
+
 
 
 /* ================================
    ADMISSIONS
 ================================ */
 
-async function loadAdmissions(vtcId){
+async function loadAdmissions(
+    vtcId
+){
 
     const {
         data,
         error
-    } = await client
-        .from("admissions")
-        .select("*")
-        .eq("vtc_id", vtcId)
-        .order(
-            "deadline",
-            { ascending: true }
-        );
+    } =
+        await client
+            .from("admissions")
+            .select("*")
+            .eq(
+                "vtc_id",
+                vtcId
+            )
+            .order(
+                "deadline",
+                {
+                    ascending:true
+                }
+            );
 
 
     const el =
@@ -1136,86 +1634,109 @@ async function loadAdmissions(vtcId){
             </div>`;
 
         return;
+
     }
 
 
     el.innerHTML =
-        (data || []).map(x => `
 
-            <div class="course-admin-row">
+        (data || [])
 
-                <div>
+            .map(
 
-                    <b>
-                        ${esc(
-                            x.title ||
-                            "Admission"
-                        )}
-                    </b>
+                x => `
 
-                    <span>
+                <div
+                    class="course-admin-row"
+                >
 
-                        ${esc(
-                            x.intake ||
-                            "Intake"
-                        )}
+                    <div>
 
-                        •
+                        <b>
 
-                        ${esc(
-                            x.status ||
-                            "Closed"
-                        )}
+                            ${esc(
+                                x.title ||
+                                "Admission"
+                            )}
 
-                        •
+                        </b>
 
-                        ${esc(
-                            x.deadline ||
-                            "No deadline"
-                        )}
 
-                    </span>
+                        <span>
+
+                            ${esc(
+                                x.intake ||
+                                "Intake"
+                            )}
+
+                            •
+
+                            ${esc(
+                                x.status ||
+                                "Closed"
+                            )}
+
+                            •
+
+                            ${esc(
+                                x.deadline ||
+                                "No deadline"
+                            )}
+
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <button
+                            type="button"
+                            class="mini"
+                            onclick="
+                                admissionForm(
+                                    '${x.vtc_id}',
+                                    '${x.id}'
+                                )
+                            "
+                        >
+
+                            Edit
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="mini danger-mini"
+                            onclick="
+                                deleteAdmission(
+                                    '${x.id}',
+                                    '${x.vtc_id}'
+                                )
+                            "
+                        >
+
+                            Delete
+
+                        </button>
+
+                    </div>
 
                 </div>
 
+                `
 
-                <div>
+            )
 
-                    <button
-                        type="button"
-                        class="mini"
-                        onclick="
-                            admissionForm(
-                                '${x.vtc_id}',
-                                '${x.id}'
-                            )
-                        "
-                    >
-                        Edit
-                    </button>
+            .join("")
 
+            ||
 
-                    <button
-                        type="button"
-                        class="mini danger-mini"
-                        onclick="
-                            deleteAdmission(
-                                '${x.id}',
-                                '${x.vtc_id}'
-                            )
-                        "
-                    >
-                        Delete
-                    </button>
+            "<p>No admission/intake information added yet.</p>";
 
-                </div>
-
-            </div>
-
-        `).join("")
-        ||
-        "<p>No admission/intake information added yet.</p>";
 }
+
 
 
 /* ================================
@@ -1229,25 +1750,16 @@ async function admissionForm(
 
     let x = {
 
-        title: "",
-
-        status: "Closed",
-
-        intake: "",
-
-        deadline: "",
-
-        application_fee: "",
-
-        tuition_fee: "",
-
-        entry_requirements: "",
-
-        instructions: "",
-
-        contact: "",
-
-        application_url: ""
+        title:"",
+        status:"Closed",
+        intake:"",
+        deadline:"",
+        application_fee:"",
+        tuition_fee:"",
+        entry_requirements:"",
+        instructions:"",
+        contact:"",
+        application_url:""
 
     };
 
@@ -1257,17 +1769,27 @@ async function admissionForm(
         const {
             data,
             error
-        } = await client
-            .from("admissions")
-            .select("*")
-            .eq("id", admissionId)
-            .single();
+        } =
+            await client
+                .from("admissions")
+                .select("*")
+                .eq(
+                    "id",
+                    admissionId
+                )
+                .single();
 
 
-        if(!error && data){
+        if(
+            !error &&
+            data
+        ){
 
-            x = data;
+            x =
+                data;
+
         }
+
     }
 
 
@@ -1285,9 +1807,13 @@ async function admissionForm(
         >
 
             <h4>
-                ${admissionId
+
+                ${
+                    admissionId
                     ? "Edit intake"
-                    : "Add intake"}
+                    : "Add intake"
+                }
+
             </h4>
 
 
@@ -1323,6 +1849,7 @@ async function admissionForm(
                     >
                         Open
                     </option>
+
 
                     <option
                         value="Closed"
@@ -1456,10 +1983,11 @@ async function admissionForm(
             <div class="form-actions">
 
                 <button
-                    type="submit"
                     class="btn primary"
                 >
+
                     Save intake
+
                 </button>
 
 
@@ -1468,7 +1996,9 @@ async function admissionForm(
                     class="btn secondary"
                     id="cancelAdmission"
                 >
+
                     Cancel
+
                 </button>
 
             </div>
@@ -1477,11 +2007,15 @@ async function admissionForm(
             <div id="admissionMsg"></div>
 
         </form>
+
     `;
 
 
+
     document
-        .getElementById("admissionForm")
+        .getElementById(
+            "admissionForm"
+        )
         .addEventListener(
             "submit",
             async e => {
@@ -1493,64 +2027,76 @@ async function admissionForm(
 
                     title:
                         document
-                        .getElementById("at")
-                        .value
-                        .trim(),
+                            .getElementById("at")
+                            .value
+                            .trim(),
 
-                    vtc_id: vtcId,
+
+                    vtc_id:
+                        vtcId,
+
 
                     status:
                         document
-                        .getElementById("as")
-                        .value,
+                            .getElementById("as")
+                            .value,
+
 
                     intake:
                         document
-                        .getElementById("ai")
-                        .value
-                        .trim(),
+                            .getElementById("ai")
+                            .value
+                            .trim(),
+
 
                     deadline:
                         document
-                        .getElementById("ad")
-                        .value
-                        || null,
+                            .getElementById("ad")
+                            .value
+                            ||
+                            null,
+
 
                     application_fee:
                         document
-                        .getElementById("af")
-                        .value
-                        .trim(),
+                            .getElementById("af")
+                            .value
+                            .trim(),
+
 
                     tuition_fee:
                         document
-                        .getElementById("tf")
-                        .value
-                        .trim(),
+                            .getElementById("tf")
+                            .value
+                            .trim(),
+
 
                     entry_requirements:
                         document
-                        .getElementById("er")
-                        .value
-                        .trim(),
+                            .getElementById("er")
+                            .value
+                            .trim(),
+
 
                     instructions:
                         document
-                        .getElementById("ix")
-                        .value
-                        .trim(),
+                            .getElementById("ix")
+                            .value
+                            .trim(),
+
 
                     contact:
                         document
-                        .getElementById("ac")
-                        .value
-                        .trim(),
+                            .getElementById("ac")
+                            .value
+                            .trim(),
+
 
                     application_url:
                         document
-                        .getElementById("al")
-                        .value
-                        .trim()
+                            .getElementById("al")
+                            .value
+                            .trim()
 
                 };
 
@@ -1565,10 +2111,12 @@ async function admissionForm(
                         "Please enter the Admission / Course Title.";
 
                     return;
+
                 }
 
 
                 const result =
+
                     admissionId
 
                     ?
@@ -1576,7 +2124,10 @@ async function admissionForm(
                     await client
                         .from("admissions")
                         .update(obj)
-                        .eq("id", admissionId)
+                        .eq(
+                            "id",
+                            admissionId
+                        )
 
                     :
 
@@ -1595,10 +2146,13 @@ async function admissionForm(
                         result.error.message;
 
                     return;
+
                 }
 
 
-                await loadAdmissions(vtcId);
+                await loadAdmissions(
+                    vtcId
+                );
 
             }
         );
@@ -1610,9 +2164,12 @@ async function admissionForm(
         )
         .addEventListener(
             "click",
-            () => loadAdmissions(vtcId)
+            () =>
+                loadAdmissions(vtcId)
         );
+
 }
+
 
 
 /* ================================
@@ -1624,18 +2181,27 @@ async function deleteAdmission(
     vtcId
 ){
 
-    if(!confirm(
-        "Delete this admission record?"
-    )){
+    if(
+        !confirm(
+            "Delete this admission record?"
+        )
+    ){
+
         return;
+
     }
 
 
-    const { error } =
+    const {
+        error
+    } =
         await client
             .from("admissions")
             .delete()
-            .eq("id", id);
+            .eq(
+                "id",
+                id
+            );
 
 
     if(error){
@@ -1643,15 +2209,20 @@ async function deleteAdmission(
         alert(error.message);
 
         return;
+
     }
 
 
-    await loadAdmissions(vtcId);
+    await loadAdmissions(
+        vtcId
+    );
+
 }
 
 
+
 /* ================================
-   ESCAPE HTML
+   ESCAPE
 ================================ */
 
 function esc(value){
@@ -1659,23 +2230,28 @@ function esc(value){
     return String(value ?? "")
         .replace(
             /[&<>"']/g,
+
             character => ({
 
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#039;"
 
             })[character]
+
         );
+
 }
 
 
 function attr(value){
 
     return esc(value);
+
 }
+
 
 
 /* ================================
@@ -1686,6 +2262,7 @@ qEl.addEventListener(
     "input",
     renderList
 );
+
 
 
 /* ================================
@@ -1702,6 +2279,7 @@ addEl.addEventListener(
 
     }
 );
+
 
 
 /* ================================
@@ -1721,6 +2299,7 @@ logoutEl.addEventListener(
 );
 
 
+
 /* ================================
    START
 ================================ */
@@ -1730,4 +2309,5 @@ guard();
 </script>
 
 </body>
+
 </html>
